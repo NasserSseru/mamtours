@@ -8,6 +8,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\KycController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReviewController;
 
 /*
 |--------------------------------------------------------------------------
