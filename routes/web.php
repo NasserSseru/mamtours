@@ -43,12 +43,19 @@ Route::get('/faqs', function () {
     return view('faqs');
 });
 
+Route::get('/explore-uganda', function () {
+    return view('explore-uganda');
+});
+
 // Public API routes
 Route::get('/api/reviews', [ReviewController::class, 'getApprovedReviews']);
 
 // Health check endpoints
 Route::get('/health', [HealthController::class, 'index']);
 Route::get('/ping', [HealthController::class, 'ping']);
+
+// API Documentation
+Route::get('/api/docs', [\App\Http\Controllers\ApiDocController::class, 'ui']);
 
 // Authentication routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -112,7 +119,7 @@ Route::middleware('auth')->group(function () {
             $userBookings = \App\Models\Booking::where('customerName', $user->name)->get();
             return view('dashboard', compact('userBookings'));
         }
-    });
+    })->name('dashboard');
 
     Route::get('/bookings', function () {
         // Prevent admin from accessing bookings page
@@ -127,6 +134,20 @@ Route::middleware('auth')->group(function () {
             return redirect('/dashboard')->with('error', 'Unauthorized access');
         }
         return view('admin');
+    });
+
+    // Analytics routes
+    Route::prefix('admin/analytics')->name('admin.analytics.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AnalyticsController::class, 'dashboard'])->name('dashboard');
+        Route::get('/data', [\App\Http\Controllers\AnalyticsController::class, 'data'])->name('data');
+        Route::get('/visitors', [\App\Http\Controllers\AnalyticsController::class, 'visitors'])->name('visitors');
+        Route::get('/users', [\App\Http\Controllers\AnalyticsController::class, 'users'])->name('users');
+        Route::get('/users/{id}', [\App\Http\Controllers\AnalyticsController::class, 'userDetails'])->name('user-details');
+        Route::get('/active-users', [\App\Http\Controllers\AnalyticsController::class, 'activeUsers'])->name('active-users');
+        Route::get('/pages', [\App\Http\Controllers\AnalyticsController::class, 'pages'])->name('pages');
+        Route::get('/actions', [\App\Http\Controllers\AnalyticsController::class, 'actions'])->name('actions');
+        Route::get('/export', [\App\Http\Controllers\AnalyticsController::class, 'export'])->name('export');
+        Route::get('/chart-data', [\App\Http\Controllers\AnalyticsController::class, 'chartData'])->name('chart-data');
     });
 });
 

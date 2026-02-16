@@ -12,7 +12,7 @@ class AdminSeeder extends Seeder
     {
         // Create admin account
         User::firstOrCreate(
-            ['email' => 'admin@mamtours.com'],
+            ['email' => 'wilberofficial2001@gmail.com'],
             [
                 'name' => 'Admin',
                 'password' => Hash::make('admin123456'),
@@ -49,7 +49,7 @@ class AdminSeeder extends Seeder
         );
 
         echo "✅ Admin and sample customer accounts created!\n";
-        echo "Admin Email: admin@mamtours.com\n";
+        echo "Admin Email: wilberofficial2001@gmail.com\n";
         echo "Admin Password: admin123456\n";
         echo "\nCustomer Email: customer@mamtours.com\n";
         echo "Customer Password: customer123456\n";

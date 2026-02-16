@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Car;
 use App\Models\AuditLog;
+use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
 
 class CarController extends Controller
@@ -65,6 +66,14 @@ class CarController extends Controller
         if (!$car) {
             return response()->json(['error' => 'Car not found'], 404);
         }
+        
+        // Track car view
+        app(AnalyticsService::class)->trackCarView($car->id, [
+            'brand' => $car->brand,
+            'model' => $car->model,
+            'daily_rate' => $car->dailyRate,
+        ]);
+        
         return response()->json($car);
     }
     

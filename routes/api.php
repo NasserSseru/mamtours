@@ -99,7 +99,6 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']);
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
-    Route::post('/bookings', [BookingController::class, 'store']);
     Route::post('/bookings/reserve', [BookingController::class, 'reserve']);
     Route::post('/bookings/{id}/confirm', [BookingController::class, 'confirm']);
     Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
@@ -110,6 +109,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/bookings/{id}/return', [BookingController::class, 'returnVehicle']);
     });
 });
+
+// Public Bookings API (unauthenticated users can submit bookings)
+Route::post('/bookings', [BookingController::class, 'store']);
 
 // Payment stubs (for compatibility)
 Route::post('/payments/intent', function(Request $request) {
@@ -159,5 +161,83 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
             ]) . "\n";
         }
         return response($csv)->header('Content-Type', 'text/csv');
+    });
+});
+
+// API v1 Routes
+Route::prefix('v1')->middleware('api.version:v1')->group(function () {
+    Route::get('/cars', [\App\Http\Controllers\Api\V1\CarApiController::class, 'index']);
+    Route::get('/cars/{id}', [\App\Http\Controllers\Api\V1\CarApiController::class, 'show']);
+    Route::get('/cars/search', [\App\Http\Controllers\Api\V1\CarApiController::class, 'search']);
+});
+
+// API v2 Routes (Enhanced with more features)
+Route::prefix('v2')->middleware('api.version:v2')->group(function () {
+    Route::get('/cars', [\App\Http\Controllers\Api\V2\CarApiController::class, 'index']);
+    Route::get('/cars/{id}', [\App\Http\Controllers\Api\V2\CarApiController::class, 'show']);
+    Route::get('/cars/search', [\App\Http\Controllers\Api\V2\CarApiController::class, 'search']);
+});
+
+// Webhook Routes
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::post('/webhooks/register', [\App\Http\Controllers\WebhookController::class, 'register']);
+    Route::get('/webhooks/deliveries/{id}', [\App\Http\Controllers\WebhookController::class, 'status']);
+});
+
+Route::post('/webhooks/receive', [\App\Http\Controllers\WebhookController::class, 'receive']);
+
+// API Documentation
+Route::get('/docs/spec', [\App\Http\Controllers\ApiDocController::class, 'spec']);
+
+// Test Upload Endpoint (for debugging)
+Route::post('/test-upload', function (Request $request) {
+    try {
+        $request->validate([
+            'file' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120'
+        ]);
+        
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $path = $file->store('test-uploads', 'public');
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'File uploaded successfully',
+                'file' => [
+                    'name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'path' => $path,
+                    'url' => asset('storage/' . $path)
+                ]
+            ]);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'No file provided'], 400);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
+// KYC API v2 Routes
+Route::prefix('v2')->middleware('api.version:v2')->group(function () {
+    // User KYC endpoints
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/kyc/status', [\App\Http\Controllers\Api\V2\KycApiController::class, 'status']);
+        Route::post('/kyc/submit', [\App\Http\Controllers\Api\V2\KycApiController::class, 'submit']);
+        Route::get('/kyc/audit-trail', [\App\Http\Controllers\Api\V2\KycApiController::class, 'auditTrail']);
+    });
+
+    // Admin KYC endpoints
+    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin/kyc')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V2\KycApiController::class, 'adminList']);
+        Route::get('/statistics', [\App\Http\Controllers\Api\V2\KycApiController::class, 'adminStatistics']);
+        Route::post('/{id}/verify', [\App\Http\Controllers\Api\V2\KycApiController::class, 'adminVerify']);
+        Route::post('/{id}/reject', [\App\Http\Controllers\Api\V2\KycApiController::class, 'adminReject']);
+        Route::post('/{id}/request-additional', [\App\Http\Controllers\Api\V2\KycApiController::class, 'adminRequestAdditional']);
+        Route::get('/{id}/document/{type}', [\App\Http\Controllers\Api\V2\KycApiController::class, 'adminViewDocument']);
+        Route::get('/{id}/audit-trail', [\App\Http\Controllers\Api\V2\KycApiController::class, 'adminAuditTrail']);
     });
 });

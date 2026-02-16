@@ -78,20 +78,26 @@
     <section class="how-it-works">
         <div class="container">
             <h2 class="section-title"><i class="fas fa-route"></i> How It Works</h2>
-            <p class="section-description">Book a car in Uganda in four simple steps</p>
+            <p class="section-description">Book a car in Uganda in four simple steps - Click to get started</p>
             <div class="steps-grid">
-                <div class="step-card">
+                <a href="#our-fleet" class="step-card interactive-step" onclick="scrollToFleet(event)">
                     <span class="step-num">1</span>
                     <div class="step-icon"><i class="fas fa-car-side"></i></div>
                     <h3>Choose your car</h3>
                     <p>Browse our fleet from economy to 4x4 for safari. All vehicles meet Ugandan road standards.</p>
-                </div>
-                <div class="step-card">
+                    <div class="step-action">
+                        <i class="fas fa-arrow-right"></i> Browse Fleet
+                    </div>
+                </a>
+                <a href="{{ url('/bookings') }}" class="step-card interactive-step">
                     <span class="step-num">2</span>
                     <div class="step-icon"><i class="fas fa-calendar-check"></i></div>
                     <h3>Book & pay</h3>
                     <p>Select dates, pay in UGX via Mobile Money, bank transfer, or cash. Quick KYC for your safety.</p>
-                </div>
+                    <div class="step-action">
+                        <i class="fas fa-arrow-right"></i> Start Booking
+                    </div>
+                </a>
                 <div class="step-card">
                     <span class="step-num">3</span>
                     <div class="step-icon"><i class="fas fa-map-marker-alt"></i></div>
@@ -246,6 +252,22 @@
                 <p class="section-description">Handpicked vehicles maintained to the highest standards Uganda road ready</p>
             </div>
             
+            <!-- Search and Sort Bar -->
+            <div class="vehicle-search-bar">
+                <input type="text" 
+                       id="vehicleSearch" 
+                       class="search-input" 
+                       placeholder="Search by brand, model, or features...">
+                <select id="vehicleSort" class="sort-select">
+                    <option value="default">Sort by: Default</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="seats">Most Seats</option>
+                    <option value="popular">Most Popular</option>
+                    <option value="rating">Highest Rated</option>
+                </select>
+            </div>
+            
             <!-- Category Filters -->
             <div class="category-filters" id="categoryFilters"></div>
             
@@ -395,7 +417,7 @@
       });
     })();
     </script>
-    <script src="{{ asset('js/booking.js') }}"></script>
+    <script src="{{ asset('js/booking-enhanced-v2.js') }}"></script>
     <script>
     // Load dynamic reviews
     (function() {
@@ -438,3 +460,15 @@
     })();
     </script>
 @endsection
+
+
+<script>
+// Scroll to fleet section smoothly
+function scrollToFleet(event) {
+    event.preventDefault();
+    const fleetSection = document.getElementById('our-fleet');
+    if (fleetSection) {
+        fleetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+</script>

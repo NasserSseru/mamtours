@@ -3,6 +3,10 @@
 @section('title', 'Bookings | MAM TOURS AND TRAVEL AGENCY')
 
 @section('content')
+    <!-- Pass user ID verification status to view -->
+    @php
+        $userHasVerifiedId = auth()->check() && auth()->user()->id_document;
+    @endphp
     <!-- Available Vehicles Section -->
     <section class="cars-section">
         <div class="container">
@@ -10,6 +14,27 @@
                 <h2 class="section-title">Choose Your Vehicle</h2>
                 <p class="section-description">Select from our premium fleet and book instantly.</p>
             </div>
+            
+            <!-- Search and Filter -->
+            <div class="vehicles-controls">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="vehicleSearch" placeholder="Search by brand, model...">
+                </div>
+                <div class="sort-dropdown">
+                    <select id="vehicleSort">
+                        <option value="default">Sort by: Default</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="seats">Most Seats</option>
+                        <option value="popular">Most Popular</option>
+                        <option value="rating">Highest Rated</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Category Filters -->
+            <div id="categoryFilters" class="category-filters"></div>
             
             <!-- Vehicles Grid -->
             <div id="vehiclesByCategory" class="vehicles-grid"></div>
@@ -67,14 +92,25 @@
                             </div>
                             <div class="form-group">
                                 <label for="paymentMethod" class="form-label">Payment Method</label>
-                                <select id="paymentMethod" name="paymentMethod" class="form-input" required>
-                                    <option value="">Select payment method</option>
-                                    <option value="stripe">Credit/Debit Card (Stripe)</option>
-                                    <option value="mtn_mobile_money">MTN Mobile Money</option>
-                                    <option value="airtel_money">Airtel Money</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="cash">Cash on Pickup</option>
-                                </select>
+                                @if($userHasVerifiedId)
+                                    <select id="paymentMethod" name="paymentMethod" class="form-input" required>
+                                        <option value="">Select payment method</option>
+                                        <option value="stripe">Credit/Debit Card (Stripe)</option>
+                                        <option value="mtn_mobile_money">MTN Mobile Money</option>
+                                        <option value="airtel_money">Airtel Money</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="cash">Cash on Pickup</option>
+                                    </select>
+                                @else
+                                    <select id="paymentMethod" name="paymentMethod" class="form-input" required>
+                                        <option value="">Select payment method</option>
+                                        <option value="cash">Cash on Pickup</option>
+                                    </select>
+                                    <small class="form-hint" style="color: #ff9800; margin-top: 0.5rem; display: block;">
+                                        <i class="fas fa-lock"></i> Cashless payments require ID verification. 
+                                        <a href="{{ route('profile.show') }}" style="color: #ff9800; text-decoration: underline;">Upload your ID/Passport</a> to unlock all payment methods.
+                                    </small>
+                                @endif
                             </div>
                             <div class="form-group" id="mobileMoneyDetails" style="display: none;">
                                 <label for="mobileMoneyNumber" class="form-label">Mobile Money Number</label>
@@ -84,60 +120,9 @@
                         </div>
                     </div>
 
-                    <!-- Step 3: Identity Verification -->
+                    <!-- Step 3: Payment Method -->
                     <div class="booking-step">
-                        <h3 class="step-title"><i class="fas fa-shield-alt"></i> Step 3: Identity Verification</h3>
-                        <p class="step-description">Upload your ID and driving permit for verification (required for security)</p>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="idType" class="form-label">ID Type</label>
-                                <select id="idType" name="idType" class="form-input" required>
-                                    <option value="">Select ID type</option>
-                                    <option value="nin">National ID (NIN)</option>
-                                    <option value="passport">Passport</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="idNumber" class="form-label">ID Number</label>
-                                <input type="text" id="idNumber" name="idNumber" class="form-input" placeholder="Enter your ID number" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="permitNumber" class="form-label">Driving Permit Number</label>
-                                <input type="text" id="permitNumber" name="permitNumber" class="form-input" placeholder="Enter your permit number" required>
-                            </div>
-                        </div>
-
-                        <!-- Document Upload -->
-                        <div class="documents-upload">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="idDocument" class="form-label">Upload ID Document</label>
-                                    <div class="file-upload-area" id="idUploadArea">
-                                        <input type="file" id="idDocument" name="idDocument" accept="image/*,.pdf" required>
-                                        <div class="upload-placeholder">
-                                            <i class="fas fa-cloud-upload-alt"></i>
-                                            <p>Click to upload ID document</p>
-                                            <small>JPG, PNG, PDF (max 5MB)</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="permitDocument" class="form-label">Upload Driving Permit</label>
-                                    <div class="file-upload-area" id="permitUploadArea">
-                                        <input type="file" id="permitDocument" name="permitDocument" accept="image/*,.pdf" required>
-                                        <div class="upload-placeholder">
-                                            <i class="fas fa-cloud-upload-alt"></i>
-                                            <p>Click to upload permit document</p>
-                                            <small>JPG, PNG, PDF (max 5MB)</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <h3 class="step-title"><i class="fas fa-credit-card"></i> Step 3: Payment Method</h3>
                     </div>
                     
                     <div class="pricing-summary" id="pricingSummary" style="display: none;">
@@ -174,5 +159,6 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('js/booking-enhanced.js') }}"></script>
+    <script src="{{ asset('js/booking-enhanced-v2.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('js/booking-form.js') }}?v={{ time() }}"></script>
 @endsection

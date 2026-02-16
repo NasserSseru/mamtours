@@ -27,6 +27,9 @@ class User extends Authenticatable
         'last_login_ip',
         'failed_login_attempts',
         'locked_until',
+        'id_type',
+        'id_number',
+        'id_document',
     ];
 
     protected $hidden = [

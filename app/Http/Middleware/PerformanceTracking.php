@@ -39,9 +39,12 @@ class PerformanceTracking
             ]);
         }
 
+        // Generate request ID if not exists
+        $requestId = $request->header('X-Request-ID', uniqid('req_', true));
+
         // Add performance headers
         $response->headers->set('X-Response-Time', round($duration * 1000, 2) . 'ms');
-        $response->headers->set('X-Request-ID', $request->id());
+        $response->headers->set('X-Request-ID', $requestId);
 
         // Finish Sentry transaction
         if (app()->bound('sentry')) {

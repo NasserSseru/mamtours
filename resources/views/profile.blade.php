@@ -85,6 +85,48 @@
                             <input type="tel" id="phone" name="phone" class="form-input" value="{{ old('phone', $user->phone) }}" placeholder="+256...">
                         </div>
 
+                        <!-- ID/Passport Upload Section -->
+                        <div style="border-top: 2px solid #eee; padding-top: 1.5rem; margin-top: 1.5rem;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; color: #1a2332; margin-bottom: 1rem;">
+                                <i class="fas fa-id-card"></i> Identity Verification
+                            </h3>
+                            <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px; margin-bottom: 1.5rem; color: #856404;">
+                                <i class="fas fa-exclamation-triangle" style="color: #ffc107; margin-right: 8px;"></i>
+                                <strong>Important:</strong> Upload your ID or passport to speed up the rental process and improve verification.
+                            </div>
+
+                            <div class="form-group">
+                                <label for="idType" class="form-label"><i class="fas fa-passport"></i> ID Type</label>
+                                <select id="idType" name="idType" class="form-input">
+                                    <option value="">-- Select ID Type (Optional) --</option>
+                                    <option value="nin">National ID (NIN)</option>
+                                    <option value="passport">Passport</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="idNumber" class="form-label"><i class="fas fa-barcode"></i> ID Number</label>
+                                <input type="text" id="idNumber" name="idNumber" class="form-input" placeholder="Enter your ID number (optional)">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="idDocument" class="form-label"><i class="fas fa-file-upload"></i> Upload ID/Passport Document</label>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="idDocument" name="idDocument" class="file-input" accept=".jpg,.jpeg,.png,.pdf">
+                                    <label for="idDocument" class="file-input-label">
+                                        <span class="file-input-icon"><i class="fas fa-cloud-upload-alt"></i></span>
+                                        <span class="file-input-text">Click to upload or drag and drop</span>
+                                        <span class="file-input-hint">JPG, PNG, PDF up to 5MB</span>
+                                    </label>
+                                    <div id="filePreview" style="margin-top: 10px; display: none; color: #28a745;">
+                                        <i class="fas fa-check-circle" style="margin-right: 5px;"></i>
+                                        <span id="previewText"></span>
+                                    </div>
+                                </div>
+                                <small class="form-hint">Accepted formats: JPG, PNG, PDF (Max 5MB)</small>
+                            </div>
+                        </div>
+
                         <!-- Submit Button -->
                         <div class="form-actions">
                             <button type="submit" class="submit-btn"><i class="fas fa-save"></i> Save Changes</button>
@@ -153,7 +195,22 @@
     (function(){
       var y=new Date().getFullYear();
       document.querySelectorAll('.current-year').forEach(function(el){ el.textContent=y; });
-    })();
+    });
+
+    // Handle ID document file preview
+    const idDocumentInput = document.getElementById('idDocument');
+    const filePreview = document.getElementById('filePreview');
+    const previewText = document.getElementById('previewText');
+
+    if (idDocumentInput) {
+        idDocumentInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                previewText.textContent = `✓ ${file.name} selected`;
+                filePreview.style.display = 'block';
+            }
+        });
+    }
     </script>
 @endsection
 

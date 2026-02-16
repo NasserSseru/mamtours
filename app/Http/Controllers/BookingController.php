@@ -6,16 +6,19 @@ use App\Models\Booking;
 use App\Models\Car;
 use App\Models\AuditLog;
 use App\Services\NotificationService;
+use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
 class BookingController extends Controller
 {
     protected $notificationService;
+    protected $analyticsService;
 
-    public function __construct(NotificationService $notificationService)
+    public function __construct(NotificationService $notificationService, AnalyticsService $analyticsService)
     {
         $this->notificationService = $notificationService;
+        $this->analyticsService = $analyticsService;
     }
     private function daysBetween($startISO, $endISO)
     {
@@ -81,89 +84,129 @@ class BookingController extends Controller
             $validated = $request->validate([
                 'carId' => 'required|exists:cars,id',
                 'customerName' => 'required|string|max:200',
+                'customerEmail' => 'required|email|max:200',
+                'customerPhone' => 'required|string|max:20',
                 'startDate' => 'required|date_format:Y-m-d',
                 'endDate' => 'required|date_format:Y-m-d|after:startDate',
-                'payment_method' => 'required|in:stripe,mtn_mobile_money,airtel_money,bank_transfer,cash',
-                'mobile_money_number' => 'nullable|string|max:20',
-                'phone_number' => 'nullable|string|max:20',
-                'id_type' => 'required|in:nin,passport',
-                'id_number' => 'required|string|max:50',
-                'permit_number' => 'required|string|max:50',
+                'paymentMethod' => 'required|in:stripe,mtn_mobile_money,airtel_money,bank_transfer,cash',
+                'mobileMoneyNumber' => 'nullable|string|max:20',
+                'idType' => 'nullable|in:nin,passport',
+                'idNumber' => 'nullable|string|max:50',
+                'idDocument' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             ]);
 
-            // Check if user is authenticated and has verified KYC
+            // Check if user is trying to use cashless payment without ID verification
             $user = auth()->user();
-            if ($user && !$user->isKycVerified()) {
+            $isCashlessPayment = in_array($validated['paymentMethod'], ['stripe', 'bank_transfer']);
+            
+            if ($isCashlessPayment && $user && !$user->id_document) {
                 return response()->json([
-                    'error' => 'KYC verification required',
-                    'message' => 'Please complete your KYC verification before booking a vehicle.'
-                ], 403);
+                    'message' => 'ID verification required for cashless payments',
+                    'errors' => ['paymentMethod' => ['Please upload your ID/passport in your profile to use cashless payments.']]
+                ], 422);
             }
 
             $car = Car::find($validated['carId']);
             if (!$car->isAvailable) {
-                return response()->json(['error' => 'Car unavailable'], 400);
+                return response()->json(['message' => 'Car is not available'], 400);
             }
 
             $pricing = $this->computePrice($car, $validated['startDate'], $validated['endDate'], []);
 
+            // Handle file upload
+            $idDocumentPath = null;
+            try {
+                if ($request->hasFile('idDocument')) {
+                    $file = $request->file('idDocument');
+                    \Log::info('File upload attempt', [
+                        'name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime' => $file->getMimeType(),
+                        'path' => $file->getRealPath()
+                    ]);
+                    
+                    // Ensure directory exists
+                    $storagePath = storage_path('app/public/bookings/id-documents');
+                    if (!is_dir($storagePath)) {
+                        mkdir($storagePath, 0755, true);
+                        \Log::info('Created storage directory: ' . $storagePath);
+                    }
+                    
+                    // Try to store in public disk
+                    $idDocumentPath = $file->store('bookings/id-documents', 'public');
+                    \Log::info('File uploaded successfully: ' . $idDocumentPath);
+                } else {
+                    \Log::warning('No file in request');
+                }
+            } catch (\Exception $fileError) {
+                \Log::error('File upload error: ' . $fileError->getMessage() . ' | ' . $fileError->getFile() . ':' . $fileError->getLine());
+                // Continue without file if upload fails - don't throw
+                $idDocumentPath = null;
+            }
+
             $bookingData = [
                 'car_id' => $validated['carId'],
                 'customerName' => $validated['customerName'],
+                'customerEmail' => $validated['customerEmail'],
+                'customerPhone' => $validated['customerPhone'],
                 'startDate' => $validated['startDate'],
                 'endDate' => $validated['endDate'],
                 'status' => 'pending',
-                'pricing' => $pricing,
-                'payment_method' => $validated['payment_method'],
+                'totalPrice' => $pricing['total'],
+                'pricing' => json_encode($pricing),
+                'payment_method' => $validated['paymentMethod'],
                 'payment_status' => 'pending',
-                'phone_number' => $validated['phone_number'] ?? null,
-                'mobile_money_number' => $validated['mobile_money_number'] ?? null,
+                'mobile_money_number' => $validated['mobileMoneyNumber'] ?? null,
+                'idType' => $validated['idType'] ?? null,
+                'idNumber' => $validated['idNumber'] ?? null,
+                'idDocument' => $idDocumentPath,
             ];
 
-            // Add user_id and kyc_id if user is authenticated
+            // Add user_id if user is authenticated
             if ($user) {
                 $bookingData['user_id'] = $user->id;
-                if ($user->kyc) {
-                    $bookingData['kyc_id'] = $user->kyc->id;
-                }
             }
 
             $booking = Booking::create($bookingData);
 
-            // Store ID and Permit information in a JSON field or create audit log
+            // Track booking creation
+            $this->analyticsService->trackBookingCreated($booking->id, [
+                'car_id' => $booking->car_id,
+                'paymentMethod' => $booking->paymentMethod,
+                'total_amount' => $pricing['total'],
+                'days' => $pricing['days'],
+            ]);
+
+            // Store audit log
             AuditLog::create([
                 'action' => 'booking.create',
                 'details' => [
                     'bookingId' => $booking->id,
                     'carId' => $booking->car_id,
-                    'idType' => $validated['id_type'],
-                    'idNumber' => $validated['id_number'],
-                    'permitNumber' => $validated['permit_number']
+                    'idType' => $validated['idType'] ?? null,
+                    'idNumber' => $validated['idNumber'] ?? null,
+                    'idDocument' => $idDocumentPath,
                 ],
                 'at' => now(),
             ]);
 
+            // Mark car as unavailable
             $car->update(['isAvailable' => false]);
 
             // Send admin notification about new booking
             $this->notificationService->sendAdminBookingNotification($booking);
 
-            // For web requests, redirect to payment page
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Booking created successfully', 
-                    'booking' => $booking,
-                    'redirect_url' => route('payments.show', $booking)
-                ], 201);
-            } else {
-                return redirect()->route('payments.show', $booking)
-                    ->with('success', 'Booking created! Please complete payment to confirm your reservation.');
-            }
+            return response()->json([
+                'message' => 'Booking submitted successfully! Admin will confirm shortly.',
+                'booking' => $booking,
+                'redirect_url' => route('dashboard')
+            ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['error' => 'Validation failed', 'errors' => $e->errors()], 422);
+            \Log::error('Validation error: ' . json_encode($e->errors()));
+            return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
         } catch (\Exception $e) {
-            \Log::error('Booking creation error: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to create booking', 'message' => $e->getMessage()], 500);
+            \Log::error('Booking creation error: ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json(['message' => 'Failed to submit booking', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -230,11 +273,8 @@ class BookingController extends Controller
             'confirmedAt' => now(),
         ]);
 
-        // Send confirmation notification if user exists
-        if ($booking->user_id) {
-            $user = $booking->user;
-            $this->notificationService->sendBookingConfirmation($booking, $user);
-        }
+        // Send confirmation notification via email and SMS
+        \App\Jobs\SendBookingConfirmationNotification::dispatch($booking, 'confirmed');
 
         AuditLog::create([
             'action' => 'booking.confirm',

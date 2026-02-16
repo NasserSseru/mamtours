@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#FFD700">
     <title>@yield('title', 'MAM TOURS AND TRAVEL AGENCY')</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
     
     <!-- Main CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
@@ -38,6 +42,7 @@
             <ul class="nav-menu">
                 <li><a href="{{ url('/') }}" class="nav-link {{ request()->is('/') || request()->is('home') ? 'active' : '' }}">Home</a></li>
                 <li><a href="{{ url('/about') }}" class="nav-link {{ request()->is('about') ? 'active' : '' }}">About</a></li>
+                <li><a href="{{ url('/explore-uganda') }}" class="nav-link {{ request()->is('explore-uganda') ? 'active' : '' }}">Explore Uganda</a></li>
                 
                 @auth
                     @if (Auth::user()->isAdmin())
@@ -76,6 +81,17 @@
     </nav>
 
     @yield('content')
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed'));
+            });
+        }
+    </script>
 
     @yield('scripts')
 </body>

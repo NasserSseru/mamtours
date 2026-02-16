@@ -141,7 +141,7 @@ class BackupService
      */
     public function notifyAdmins(Exception $exception): void
     {
-        $adminEmail = config('mail.admin_email', 'admin@mamtours.com');
+        $adminEmail = config('mail.admin_email', 'wilberofficial2001@gmail.com');
 
         try {
             Mail::raw(

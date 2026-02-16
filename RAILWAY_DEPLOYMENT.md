@@ -88,7 +88,7 @@ MAIL_PASSWORD=null
 MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS=noreply@mamtours.com
 MAIL_FROM_NAME="${APP_NAME}"
-MAIL_ADMIN_EMAIL=admin@mamtours.com
+MAIL_ADMIN_EMAIL=wilberofficial2001@gmail.com
 
 # Payment Configuration (add your keys later)
 STRIPE_KEY=pk_test_your_key_here

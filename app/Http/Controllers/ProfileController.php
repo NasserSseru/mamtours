@@ -22,6 +22,9 @@ class ProfileController extends Controller
             'email' => 'required|email|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'idType' => 'nullable|in:nin,passport',
+            'idNumber' => 'nullable|string|max:50',
+            'idDocument' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         // Handle profile picture upload
@@ -34,6 +37,26 @@ class ProfileController extends Controller
             // Store new picture
             $path = $request->file('profile_picture')->store('profiles', 'public');
             $validated['profile_picture'] = $path;
+        }
+
+        // Handle ID document upload
+        if ($request->hasFile('idDocument')) {
+            // Delete old document if exists
+            if ($user->id_document && Storage::disk('public')->exists($user->id_document)) {
+                Storage::disk('public')->delete($user->id_document);
+            }
+
+            // Store new document
+            $path = $request->file('idDocument')->store('id-documents', 'public');
+            $validated['id_document'] = $path;
+        }
+
+        // Add ID fields if provided
+        if ($request->filled('idType')) {
+            $validated['id_type'] = $request->input('idType');
+        }
+        if ($request->filled('idNumber')) {
+            $validated['id_number'] = $request->input('idNumber');
         }
 
         $user->update($validated);

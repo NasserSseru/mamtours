@@ -12,10 +12,10 @@ class AdminUserSeeder extends Seeder
     {
         // Create super admin account
         User::firstOrCreate(
-            ['email' => 'admin@mamtours.com'],
+            ['email' => 'wilberofficial2001@gmail.com'],
             [
                 'name' => 'MAM Tours Admin',
-                'email' => 'admin@mamtours.com',
+                'email' => 'wilberofficial2001@gmail.com',
                 'password' => Hash::make('admin123456'), // Change this password!
                 'role' => 'admin',
             ]

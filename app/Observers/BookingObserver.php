@@ -4,14 +4,17 @@ namespace App\Observers;
 
 use App\Models\Booking;
 use App\Services\CacheManager;
+use App\Services\WebhookService;
 
 class BookingObserver
 {
     private CacheManager $cacheManager;
+    private WebhookService $webhookService;
 
-    public function __construct(CacheManager $cacheManager)
+    public function __construct(CacheManager $cacheManager, WebhookService $webhookService)
     {
         $this->cacheManager = $cacheManager;
+        $this->webhookService = $webhookService;
     }
 
     /**
@@ -28,6 +31,17 @@ class BookingObserver
         if ($booking->car_id) {
             $this->cacheManager->invalidateCarCache($booking->car_id);
         }
+
+        // Dispatch webhook
+        $this->webhookService->dispatch('booking.created', [
+            'booking_id' => $booking->id,
+            'car_id' => $booking->car_id,
+            'customer_name' => $booking->customerName,
+            'start_date' => $booking->startDate,
+            'end_date' => $booking->endDate,
+            'status' => $booking->status,
+            'created_at' => $booking->created_at->toIso8601String(),
+        ]);
     }
 
     /**
@@ -43,6 +57,24 @@ class BookingObserver
         // Invalidate car cache
         if ($booking->car_id) {
             $this->cacheManager->invalidateCarCache($booking->car_id);
+        }
+
+        // Dispatch webhook for status changes
+        if ($booking->isDirty('status')) {
+            $eventType = 'booking.updated';
+            
+            if ($booking->status === 'confirmed') {
+                $eventType = 'booking.confirmed';
+            } elseif ($booking->status === 'cancelled') {
+                $eventType = 'booking.cancelled';
+            }
+
+            $this->webhookService->dispatch($eventType, [
+                'booking_id' => $booking->id,
+                'car_id' => $booking->car_id,
+                'status' => $booking->status,
+                'updated_at' => $booking->updated_at->toIso8601String(),
+            ]);
         }
     }
 
