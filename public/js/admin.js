@@ -459,7 +459,9 @@ async function deleteVehicle(carId) {
 // Load Bookings
 async function loadBookings() {
     try {
-        const response = await fetch(`${API_BASE}/bookings`);
+        const response = await fetch(`${API_BASE}/bookings`, {
+            credentials: 'same-origin'
+        });
         bookings = await response.json();
         renderBookings();
         updateCounts();
