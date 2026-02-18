@@ -20,6 +20,7 @@ php artisan migrate --force --no-interaction
 
 # Run seeders (ignore errors if user already exists)
 php artisan db:seed --class=UserSeeder --force || true
+php artisan db:seed --class=CarSeeder --force || true
 
 # Create storage link (ignore errors if already exists)
 php artisan storage:link || true
