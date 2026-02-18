@@ -80,8 +80,9 @@ class CarController extends Controller
 
         AuditLog::create([
             'action' => 'car.create',
-            'details' => ['carId' => $car->id, 'plate' => $car->numberPlate],
-            'at' => now(),
+            'details' => json_encode(['carId' => $car->id, 'plate' => $car->numberPlate]),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return response()->json(['message' => 'Car added successfully', 'car' => $car], 201);
