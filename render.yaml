@@ -44,7 +44,7 @@ services:
       - key: SESSION_DRIVER
         value: database
       - key: SESSION_LIFETIME
-        value: 120
+        value: 480
       - key: SESSION_ENCRYPT
         value: false
       - key: SESSION_PATH
