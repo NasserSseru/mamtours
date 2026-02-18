@@ -30,7 +30,7 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set permissions
-RUN chmod -R 755 storage bootstrap/cache
+RUN chmod -R 777 storage bootstrap/cache
 
 # Expose port
 EXPOSE 8000
