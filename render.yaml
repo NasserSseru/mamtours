@@ -15,6 +15,8 @@ services:
         generateValue: true
       - key: APP_URL
         value: https://mamtours.onrender.com
+      - key: FORCE_HTTPS
+        value: true
       - key: LOG_CHANNEL
         value: stack
       - key: DB_CONNECTION
