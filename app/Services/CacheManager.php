@@ -16,25 +16,47 @@ class CacheManager
     private const TTL_BOOKING_DATA = 600; // 10 minutes
 
     /**
+     * Check if cache driver supports tagging
+     */
+    private function supportsTagging(): bool
+    {
+        return in_array(config('cache.default'), ['redis', 'memcached', 'dynamodb', 'array']);
+    }
+
+    /**
      * Get cars with caching
      */
     public function getCars(array $filters = []): Collection
     {
         $key = $this->buildCacheKey('cars', $filters);
         
-        return Cache::tags(['cars'])->remember($key, self::TTL_CAR_LISTINGS, function () use ($filters) {
-            $query = Car::query();
-            
-            if (isset($filters['isAvailable'])) {
-                $query->where('isAvailable', $filters['isAvailable']);
-            }
-            
-            if (isset($filters['category'])) {
-                $query->where('category', $filters['category']);
-            }
-            
-            return $query->get();
+        if ($this->supportsTagging()) {
+            return Cache::tags(['cars'])->remember($key, self::TTL_CAR_LISTINGS, function () use ($filters) {
+                return $this->fetchCars($filters);
+            });
+        }
+        
+        return Cache::remember($key, self::TTL_CAR_LISTINGS, function () use ($filters) {
+            return $this->fetchCars($filters);
         });
+    }
+
+    /**
+     * Fetch cars from database
+     */
+    private function fetchCars(array $filters): Collection
+    {
+        $query = Car::query();
+        
+        if (isset($filters['isAvailable'])) {
+            $query->where('isAvailable', $filters['isAvailable']);
+        }
+        
+        if (isset($filters['category'])) {
+            $query->where('category', $filters['category']);
+        }
+        
+        return $query->get();
     }
 
     /**
@@ -44,7 +66,13 @@ class CacheManager
     {
         $key = "car:{$id}";
         
-        return Cache::tags(['cars'])->remember($key, self::TTL_CAR_LISTINGS, function () use ($id) {
+        if ($this->supportsTagging()) {
+            return Cache::tags(['cars'])->remember($key, self::TTL_CAR_LISTINGS, function () use ($id) {
+                return Car::find($id);
+            });
+        }
+        
+        return Cache::remember($key, self::TTL_CAR_LISTINGS, function () use ($id) {
             return Car::find($id);
         });
     }
@@ -56,16 +84,30 @@ class CacheManager
     {
         $key = "user_bookings:{$userId}";
         
-        return Cache::tags(['bookings', "user:{$userId}"])->remember(
-            $key,
-            self::TTL_BOOKING_DATA,
-            function () use ($userId) {
-                return Booking::where('user_id', $userId)
-                    ->with('car')
-                    ->orderBy('created_at', 'desc')
-                    ->get();
-            }
-        );
+        if ($this->supportsTagging()) {
+            return Cache::tags(['bookings', "user:{$userId}"])->remember(
+                $key,
+                self::TTL_BOOKING_DATA,
+                function () use ($userId) {
+                    return $this->fetchUserBookings($userId);
+                }
+            );
+        }
+        
+        return Cache::remember($key, self::TTL_BOOKING_DATA, function () use ($userId) {
+            return $this->fetchUserBookings($userId);
+        });
+    }
+
+    /**
+     * Fetch user bookings from database
+     */
+    private function fetchUserBookings(int $userId): Collection
+    {
+        return Booking::where('user_id', $userId)
+            ->with('car')
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     /**
@@ -93,10 +135,20 @@ class CacheManager
      */
     public function invalidateCarCache(int $carId = null): void
     {
-        if ($carId) {
-            Cache::tags(['cars'])->forget("car:{$carId}");
+        if ($this->supportsTagging()) {
+            if ($carId) {
+                Cache::tags(['cars'])->forget("car:{$carId}");
+            } else {
+                Cache::tags(['cars'])->flush();
+            }
         } else {
-            Cache::tags(['cars'])->flush();
+            // Without tagging, forget specific keys or flush all
+            if ($carId) {
+                Cache::forget("car:{$carId}");
+            } else {
+                // Flush all cache when we can't use tags
+                Cache::flush();
+            }
         }
     }
 
@@ -105,10 +157,20 @@ class CacheManager
      */
     public function invalidateBookingCache(int $userId = null): void
     {
-        if ($userId) {
-            Cache::tags(["user:{$userId}"])->flush();
+        if ($this->supportsTagging()) {
+            if ($userId) {
+                Cache::tags(["user:{$userId}"])->flush();
+            } else {
+                Cache::tags(['bookings'])->flush();
+            }
         } else {
-            Cache::tags(['bookings'])->flush();
+            // Without tagging, forget specific keys or flush all
+            if ($userId) {
+                Cache::forget("user_bookings:{$userId}");
+            } else {
+                // Flush all cache when we can't use tags
+                Cache::flush();
+            }
         }
     }
 
