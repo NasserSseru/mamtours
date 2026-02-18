@@ -435,6 +435,7 @@ async function deleteVehicle(carId) {
     try {
         const response = await fetch(`${API_BASE}/cars/${carId}`, {
             method: 'DELETE',
+            credentials: 'same-origin',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 'Accept': 'application/json',
@@ -689,6 +690,7 @@ async function confirmBooking(bookingId) {
     try {
         const response = await fetch(`${API_BASE}/bookings/${bookingId}/confirm`, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
@@ -797,6 +799,7 @@ async function handleAddVehicle(e) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 'Accept': 'application/json'
             },
+            credentials: 'same-origin', // Include cookies
             body: formData // Send FormData directly (includes file)
         });
 
