@@ -463,7 +463,16 @@ async function loadBookings() {
         const response = await fetch(`${ADMIN_BASE}/bookings`, {
             credentials: 'same-origin'
         });
-        bookings = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Handle both old format (array) and new format (object with bookings property)
+        bookings = Array.isArray(data) ? data : (data.bookings || []);
+        
         renderBookings();
         updateCounts();
     } catch (error) {

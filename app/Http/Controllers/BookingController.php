@@ -74,15 +74,28 @@ class BookingController extends Controller
     }
 
     public function index()
-    {
-        try {
-            $bookings = Booking::all();
-            return response()->json($bookings);
-        } catch (\Exception $e) {
-            \Log::error('Failed to load bookings: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to load bookings', 'message' => $e->getMessage()], 500);
+        {
+            try {
+                $bookings = Booking::with(['car', 'user'])
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+                return response()->json([
+                    'success' => true,
+                    'bookings' => $bookings,
+                    'count' => $bookings->count()
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Failed to load bookings: ' . $e->getMessage());
+                \Log::error('Stack trace: ' . $e->getTraceAsString());
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Failed to load bookings',
+                    'message' => $e->getMessage(),
+                    'trace' => config('app.debug') ? $e->getTraceAsString() : null
+                ], 500);
+            }
         }
-    }
 
     public function store(Request $request)
     {
