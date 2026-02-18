@@ -3,7 +3,7 @@ services:
     name: mam-tours
     env: php
     buildCommand: bash build.sh
-    startCommand: vendor/bin/heroku-php-apache2 public/
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
     envVars:
       - key: APP_NAME
         value: MAM Tours
