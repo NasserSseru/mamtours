@@ -14,7 +14,7 @@ services:
       - key: APP_KEY
         generateValue: true
       - key: APP_URL
-        sync: false
+        value: https://mamtours.onrender.com
       - key: LOG_CHANNEL
         value: stack
       - key: DB_CONNECTION
