@@ -50,7 +50,11 @@ services:
       - key: SESSION_PATH
         value: /
       - key: SESSION_DOMAIN
-        value: mamtours.onrender.com
+        value: .mamtours.onrender.com
+      - key: SESSION_SECURE_COOKIE
+        value: true
+      - key: SESSION_SAME_SITE
+        value: lax
       - key: QUEUE_CONNECTION
         value: sync
       - key: CACHE_DRIVER
