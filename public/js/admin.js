@@ -1557,7 +1557,9 @@ function switchTab(tabName) {
 // Maintenance Mode Functions
 async function checkMaintenanceMode() {
     try {
-        const response = await fetch(`${API_BASE}/maintenance/status`);
+        const response = await fetch(`${ADMIN_BASE}/maintenance/status`, {
+            credentials: 'same-origin'
+        });
         const data = await response.json();
         
         updateMaintenanceModeButton(data.maintenance_mode);
@@ -1592,8 +1594,9 @@ if (maintenanceModeBtn) {
         maintenanceModeText.textContent = isActive ? 'Disabling...' : 'Enabling...';
         
         try {
-            const response = await fetch(`${API_BASE}/maintenance/${action}`, {
+            const response = await fetch(`${ADMIN_BASE}/maintenance/${action}`, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                     'Accept': 'application/json',

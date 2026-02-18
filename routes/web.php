@@ -109,6 +109,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/bookings/{id}/confirm', [BookingController::class, 'confirm'])->name('admin.bookings.confirm');
         Route::post('/admin/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('admin.bookings.cancel');
         
+        // Maintenance Mode routes
+        Route::get('/admin/maintenance/status', [\App\Http\Controllers\MaintenanceController::class, 'status'])->name('admin.maintenance.status');
+        Route::post('/admin/maintenance/enable', [\App\Http\Controllers\MaintenanceController::class, 'enable'])->name('admin.maintenance.enable');
+        Route::post('/admin/maintenance/disable', [\App\Http\Controllers\MaintenanceController::class, 'disable'])->name('admin.maintenance.disable');
+        
         // KYC Admin routes
         Route::get('/admin/kyc', [KycController::class, 'adminIndex'])->name('kyc.admin');
         Route::get('/api/kyc', [KycController::class, 'adminList'])->name('kyc.list');
