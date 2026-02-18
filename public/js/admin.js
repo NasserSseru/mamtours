@@ -1,5 +1,6 @@
 // API Base URL
 const API_BASE = '/api';
+const ADMIN_BASE = '/admin';
 
 // State
 let bookings = [];
@@ -433,7 +434,7 @@ async function toggleCarAvailability(carId) {
 // Delete Vehicle
 async function deleteVehicle(carId) {
     try {
-        const response = await fetch(`${API_BASE}/cars/${carId}`, {
+        const response = await fetch(`${ADMIN_BASE}/cars/${carId}`, {
             method: 'DELETE',
             credentials: 'same-origin',
             headers: {
@@ -459,7 +460,7 @@ async function deleteVehicle(carId) {
 // Load Bookings
 async function loadBookings() {
     try {
-        const response = await fetch(`${API_BASE}/bookings`, {
+        const response = await fetch(`${ADMIN_BASE}/bookings`, {
             credentials: 'same-origin'
         });
         bookings = await response.json();
@@ -690,7 +691,7 @@ function setPendingCardButtonsState(clickedButton, disabled, state) {
 // Confirm Booking
 async function confirmBooking(bookingId) {
     try {
-        const response = await fetch(`${API_BASE}/bookings/${bookingId}/confirm`, {
+        const response = await fetch(`${ADMIN_BASE}/bookings/${bookingId}/confirm`, {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -795,7 +796,7 @@ async function handleAddVehicle(e) {
     formData.set('numberPlate', numberPlate);
 
     try {
-        const response = await fetch(`${API_BASE}/cars`, {
+        const response = await fetch(`${ADMIN_BASE}/cars`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',

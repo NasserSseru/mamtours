@@ -98,6 +98,17 @@ Route::middleware('auth')->group(function () {
 
     // Admin routes
     Route::middleware('admin')->group(function () {
+        // Car Management routes
+        Route::post('/admin/cars', [CarController::class, 'store'])->name('admin.cars.store');
+        Route::put('/admin/cars/{id}', [CarController::class, 'update'])->name('admin.cars.update');
+        Route::delete('/admin/cars/{id}', [CarController::class, 'destroy'])->name('admin.cars.destroy');
+        Route::get('/admin/cars', [CarController::class, 'index'])->name('admin.cars.index');
+        
+        // Booking Management routes
+        Route::get('/admin/bookings', [BookingController::class, 'index'])->name('admin.bookings.index');
+        Route::post('/admin/bookings/{id}/confirm', [BookingController::class, 'confirm'])->name('admin.bookings.confirm');
+        Route::post('/admin/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('admin.bookings.cancel');
+        
         // KYC Admin routes
         Route::get('/admin/kyc', [KycController::class, 'adminIndex'])->name('kyc.admin');
         Route::get('/api/kyc', [KycController::class, 'adminList'])->name('kyc.list');
