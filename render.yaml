@@ -43,6 +43,14 @@ services:
           property: password
       - key: SESSION_DRIVER
         value: database
+      - key: SESSION_LIFETIME
+        value: 120
+      - key: SESSION_ENCRYPT
+        value: false
+      - key: SESSION_PATH
+        value: /
+      - key: SESSION_DOMAIN
+        value: mamtours.onrender.com
       - key: QUEUE_CONNECTION
         value: sync
       - key: CACHE_DRIVER
