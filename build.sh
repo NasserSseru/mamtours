@@ -32,5 +32,7 @@ if (\App\Models\Car::count() === 0) {
 }
 " || true
 
-# Create storage link (ignore errors if already exists)
+# Create storage link and ensure directories exist
 php artisan storage:link || true
+mkdir -p storage/app/public/cars
+chmod -R 775 storage

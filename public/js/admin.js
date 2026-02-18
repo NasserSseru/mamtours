@@ -359,7 +359,7 @@ function createVehicleCard(car) {
     // Check multiple possible column names for the car picture
     const carPictureValue = car.carPicture || car.car_picture || car.image || car.picture || car.photo;
     const carImage = carPictureValue 
-        ? (carPictureValue.startsWith('images/') ? carPictureValue : `/storage/${carPictureValue}`)
+        ? `/storage/${carPictureValue}` // Images are in storage/app/public
         : getCarImage(car.brand, car.model, car.category);
     
     console.log('Final image path:', carImage);
@@ -866,9 +866,7 @@ function openEditVehicleModal(carId) {
     // Show current image if exists
     const carPictureValue = car.carPicture || car.car_picture || car.image || car.picture || car.photo;
     if (carPictureValue) {
-        const imagePath = carPictureValue.startsWith('images/') 
-            ? carPictureValue 
-            : `/storage/${carPictureValue}`;
+        const imagePath = `/storage/${carPictureValue}`; // Images are in storage/app/public
         currentImage.src = imagePath;
         currentImagePreview.style.display = 'block';
     } else {

@@ -35,21 +35,18 @@ class CarController extends Controller
             'numberPlate.regex' => 'Invalid number plate format. Use UAJ 979B (legacy) or UG 32 00042 (digital) format.'
         ]);
 
-        // Handle car picture upload
+        // Handle car picture upload only if file is present
         $carPicturePath = null;
-        if ($request->hasFile('car_picture')) {
+        if ($request->hasFile('car_picture') && $request->file('car_picture')->isValid()) {
             try {
                 $file = $request->file('car_picture');
                 $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
                 
-                // Ensure images directory exists
-                if (!file_exists(public_path('images'))) {
-                    mkdir(public_path('images'), 0755, true);
-                }
+                // Store in storage/app/public/cars directory (Laravel standard)
+                $path = $file->storeAs('cars', $filename, 'public');
+                $carPicturePath = $path; // Will be like 'cars/filename.jpg'
                 
-                // Move to public/images directory (same as existing cars)
-                $file->move(public_path('images'), $filename);
-                $carPicturePath = 'images/' . $filename;
+                \Log::info('Image uploaded successfully: ' . $carPicturePath);
             } catch (\Exception $e) {
                 \Log::error('Image upload failed: ' . $e->getMessage());
                 return response()->json(['error' => 'Failed to upload image: ' . $e->getMessage()], 500);
@@ -136,18 +133,18 @@ class CarController extends Controller
 
         // Handle car picture upload
         if ($request->hasFile('car_picture')) {
-            // Delete old car picture if exists in public/images
-            if ($car->carPicture && file_exists(public_path($car->carPicture))) {
-                unlink(public_path($car->carPicture));
+            // Delete old car picture if exists
+            if ($car->carPicture && \Storage::disk('public')->exists($car->carPicture)) {
+                \Storage::disk('public')->delete($car->carPicture);
             }
 
-            // Store new picture in public/images directory
+            // Store new picture in storage/app/public/cars directory
             $file = $request->file('car_picture');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('images'), $filename);
+            $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+            $path = $file->storeAs('cars', $filename, 'public');
             
             // Set the path (column name is 'carPicture')
-            $validated['carPicture'] = 'images/' . $filename;
+            $validated['carPicture'] = $path;
         }
 
         if (isset($validated['numberPlate'])) {
