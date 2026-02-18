@@ -16,6 +16,9 @@ class PreventRequestsDuringMaintenance extends Middleware
         '/admin-bypass-token',
         '/login',
         '/api/maintenance/*',
+        '/admin/maintenance/*',
+        '/admin',
+        '/admin/*',
     ];
 
     /**
