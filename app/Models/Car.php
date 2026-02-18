@@ -51,17 +51,7 @@ class Car extends Model
     ];
 
     // Add accessor for frontend compatibility
-    protected $appends = ['createdAt', 'updatedAt'];
-
-    public function getCreatedAtAttribute($value)
-    {
-        return $this->attributes['created_at'];
-    }
-
-    public function getUpdatedAtAttribute($value)
-    {
-        return $this->attributes['updated_at'];
-    }
+    protected $appends = [];
 
     public function bookings()
     {
