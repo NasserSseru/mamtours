@@ -10,6 +10,8 @@ use App\Http\Controllers\KycController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CarController;
 
 /*
 |--------------------------------------------------------------------------
