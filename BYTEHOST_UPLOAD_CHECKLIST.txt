@@ -1,0 +1,50 @@
+BYTEHOST FILE UPLOAD CHECKLIST
+
+What to ZIP and Upload:
+
+REQUIRED FOLDERS:
+✓ app/
+✓ bootstrap/
+✓ config/
+✓ database/
+✓ public/
+✓ resources/
+✓ routes/
+✓ storage/
+✓ vendor/ (if you have it locally, otherwise you'll need composer on server)
+
+REQUIRED FILES:
+✓ artisan
+✓ composer.json
+✓ composer.lock
+
+DO NOT UPLOAD:
+✗ .git/
+✗ .github/
+✗ .kiro/
+✗ .vscode/
+✗ node_modules/
+✗ tests/
+✗ .env (create this on server)
+✗ .env.example
+✗ .env.production
+✗ All .md files (README.md, DEPLOYMENT guides, etc.)
+✗ .gitignore
+✗ .editorconfig
+✗ phpunit.xml
+✗ package.json
+✗ webpack.mix.js
+
+QUICK STEPS:
+1. Select the folders and files marked with ✓ above
+2. Right-click > Send to > Compressed (zipped) folder
+3. Name it "mamtours.zip"
+4. Upload to Bytehost File Manager
+5. Extract in public_html
+6. Follow the BYTEHOST_DEPLOYMENT.md guide for the rest
+
+IMPORTANT: After uploading, you MUST:
+- Move public/ folder contents to public_html root
+- Edit index.php to fix paths
+- Create .env file with database credentials
+- Set storage/ and bootstrap/cache/ permissions to 755

@@ -8,28 +8,37 @@
         $userHasVerifiedId = auth()->check() && auth()->user()->id_document;
     @endphp
     <!-- Available Vehicles Section -->
-    <section class="cars-section">
+    <section class="cars-section modern-section">
         <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Choose Your Vehicle</h2>
+            <div class="section-header modern-section-header">
+                <h2 class="section-title"><i class="fas fa-car-side"></i> Choose Your Vehicle</h2>
                 <p class="section-description">Select from our premium fleet and book instantly.</p>
             </div>
             
             <!-- Search and Filter -->
-            <div class="vehicles-controls">
-                <div class="search-bar">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="vehicleSearch" placeholder="Search by brand, model...">
-                </div>
-                <div class="sort-dropdown">
-                    <select id="vehicleSort">
-                        <option value="default">Sort by: Default</option>
-                        <option value="price-low">Price: Low to High</option>
-                        <option value="price-high">Price: High to Low</option>
-                        <option value="seats">Most Seats</option>
-                        <option value="popular">Most Popular</option>
-                        <option value="rating">Highest Rated</option>
-                    </select>
+            <div class="vehicle-search-bar">
+                <input type="text" 
+                       id="vehicleSearch" 
+                       class="search-input" 
+                       placeholder="Search by brand, model, or features...">
+                <select id="vehicleSort" class="sort-select">
+                    <option value="default">Sort by: Default</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="seats">Most Seats</option>
+                    <option value="popular">Most Popular</option>
+                    <option value="rating">Highest Rated</option>
+                </select>
+            </div>
+
+            <!-- Price Filter -->
+            <div class="price-filter-section">
+                <h3 class="filter-title"><i class="fas fa-filter"></i> Filter by Price</h3>
+                <div class="price-filter-options">
+                    <button class="price-filter-btn active" data-filter="all">All Vehicles</button>
+                    <button class="price-filter-btn" data-filter="budget">Budget (Under 100k)</button>
+                    <button class="price-filter-btn" data-filter="mid">Mid-Range (100k - 200k)</button>
+                    <button class="price-filter-btn" data-filter="premium">Premium (200k+)</button>
                 </div>
             </div>
 
@@ -37,7 +46,7 @@
             <div id="categoryFilters" class="category-filters"></div>
             
             <!-- Vehicles Grid -->
-            <div id="vehiclesByCategory" class="vehicles-grid"></div>
+            <div id="vehiclesByCategory" class="vehicles-grid modern-vehicles-grid"></div>
         </div>
     </section>
 
@@ -161,4 +170,100 @@
 @section('scripts')
     <script src="{{ asset('js/booking-enhanced-v2.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('js/booking-form.js') }}?v={{ time() }}"></script>
+    <script>
+        // Price filtering functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const priceFilterBtns = document.querySelectorAll('.price-filter-btn');
+            
+            priceFilterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    priceFilterBtns.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const filter = this.dataset.filter;
+                    filterVehiclesByPrice(filter);
+                });
+            });
+        });
+
+        function filterVehiclesByPrice(filter) {
+            const vehicleCards = document.querySelectorAll('.vehicle-card');
+            
+            vehicleCards.forEach(card => {
+                const priceText = card.querySelector('.vehicle-price')?.textContent || '';
+                const price = parseInt(priceText.replace(/[^0-9]/g, ''));
+                
+                let show = true;
+                
+                if (filter === 'budget') {
+                    show = price < 100000;
+                } else if (filter === 'mid') {
+                    show = price >= 100000 && price < 200000;
+                } else if (filter === 'premium') {
+                    show = price >= 200000;
+                }
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+    </script>
+@endsection
+
+@section('styles')
+    <style>
+        .price-filter-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a2332;
+            margin-bottom: 1rem;
+        }
+
+        .price-filter-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .price-filter-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #ddd;
+            background: white;
+            color: #1a2332;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .price-filter-btn:hover {
+            border-color: #ff9800;
+            color: #ff9800;
+        }
+
+        .price-filter-btn.active {
+            background: linear-gradient(135deg, #ff9800 0%, #ff7c00 100%);
+            color: white;
+            border-color: #ff9800;
+        }
+
+        @media (max-width: 768px) {
+            .price-filter-options {
+                flex-direction: column;
+            }
+
+            .price-filter-btn {
+                width: 100%;
+            }
+        }
+    </style>
 @endsection

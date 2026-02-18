@@ -8,13 +8,21 @@
             <h1 class="dashboard-title">Admin Dashboard</h1>
             <p class="dashboard-subtitle">Manage bookings and vehicles.</p>
         </div>
-        <button class="add-vehicle-btn" id="addVehicleBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            + Add Vehicle
-        </button>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <button class="maintenance-mode-btn" id="maintenanceModeBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+                <span id="maintenanceModeText">Maintenance Mode</span>
+            </button>
+            <button class="add-vehicle-btn" id="addVehicleBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                + Add Vehicle
+            </button>
+        </div>
     </div>
 
     <!-- Tabs -->
@@ -223,8 +231,8 @@
                 </div>
                 <div class="form-group">
                     <label for="numberPlate">Number Plate</label>
-                    <input type="text" id="numberPlate" name="numberPlate" required placeholder="e.g., UAJ 979B, UBB 123C, UG 32 00042">
-                    <small class="form-hint">Format: UAJ 979B (legacy) or UG 32 00042 (digital). Spaces are optional.</small>
+                    <input type="text" id="numberPlate" name="numberPlate" required placeholder="e.g., UBA 234R, UAJ 979B, UG 32 00042">
+                    <small class="form-hint">Format: UBA 234R (legacy) or UG 32 00042 (digital). Spaces are optional.</small>
                 </div>
                 <div class="form-group">
                     <label for="dailyRate">Daily Rate (UGX)</label>
@@ -235,6 +243,60 @@
                     <input type="number" id="seats" name="seats" required placeholder="e.g., 5" min="1" max="50">
                 </div>
                 <button type="submit" class="submit-btn">Add Vehicle</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Vehicle Modal -->
+    <div id="editVehicleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Vehicle</h2>
+                <button class="close-btn" id="closeEditModal">&times;</button>
+            </div>
+            <p class="modal-description">
+                Update vehicle details. Leave fields unchanged if you don't want to modify them.
+            </p>
+            <form id="editVehicleForm">
+                <input type="hidden" id="editCarId" name="carId">
+                <input type="hidden" name="_method" value="PUT">
+                <div class="form-group">
+                    <label for="edit_car_picture" class="form-label"><i class="fas fa-image"></i> Car Picture</label>
+                    <div id="currentImagePreview" style="margin-bottom: 10px; display: none;">
+                        <img id="currentImage" src="" alt="Current vehicle" style="max-width: 200px; border-radius: 8px;">
+                        <p style="font-size: 0.9rem; color: #666; margin-top: 5px;">Current image (upload new to replace)</p>
+                    </div>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="edit_car_picture" name="car_picture" class="file-input" accept="image/*">
+                        <label for="edit_car_picture" class="file-input-label">
+                            <span class="file-input-icon"><i class="fas fa-cloud-upload-alt"></i></span>
+                            <span class="file-input-text">Click to upload new image</span>
+                            <span class="file-input-hint">PNG, JPG, GIF up to 2MB</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editBrand">Brand</label>
+                    <input type="text" id="editBrand" name="brand" required placeholder="e.g., Mercedes-Benz">
+                </div>
+                <div class="form-group">
+                    <label for="editModel">Model</label>
+                    <input type="text" id="editModel" name="model" required placeholder="e.g., E350">
+                </div>
+                <div class="form-group">
+                    <label for="editNumberPlate">Number Plate</label>
+                    <input type="text" id="editNumberPlate" name="numberPlate" required placeholder="e.g., UBA 234R, UAJ 979B, UG 32 00042">
+                    <small class="form-hint">Format: UBA 234R (legacy) or UG 32 00042 (digital). Spaces are optional.</small>
+                </div>
+                <div class="form-group">
+                    <label for="editDailyRate">Daily Rate (UGX)</label>
+                    <input type="number" id="editDailyRate" name="dailyRate" required placeholder="e.g., 200000" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="editSeats">Seats</label>
+                    <input type="number" id="editSeats" name="seats" required placeholder="e.g., 5" min="1" max="50">
+                </div>
+                <button type="submit" class="submit-btn">Update Vehicle</button>
             </form>
         </div>
     </div>

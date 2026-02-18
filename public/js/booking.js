@@ -79,8 +79,9 @@ function renderVehicleCard(vehicle) {
     const buttonDisabled = !vehicle.isAvailable ? 'disabled' : '';
     
     // Use carPicture if available, otherwise fall back to getCarImage
-    const carImage = vehicle.carPicture 
-        ? (vehicle.carPicture.startsWith('images/') ? vehicle.carPicture : `/storage/${vehicle.carPicture}`)
+    const carPictureValue = vehicle.carPicture || vehicle.car_picture || vehicle.image || vehicle.picture || vehicle.photo;
+    const carImage = carPictureValue 
+        ? (carPictureValue.startsWith('images/') ? carPictureValue : `/storage/${carPictureValue}`)
         : getCarImage(vehicle.brand, vehicle.model, vehicle.category);
     
     return `

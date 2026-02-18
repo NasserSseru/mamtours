@@ -40,6 +40,8 @@ const vehiclesGrid = document.getElementById('vehiclesGrid');
 const vehiclesCountSpan = document.getElementById('vehiclesCount');
 const bookingInnerTabs = document.querySelectorAll('#bookingsContainer .tab-inner');
 const innerTabs = document.querySelectorAll('.tab-inner');
+const maintenanceModeBtn = document.getElementById('maintenanceModeBtn');
+const maintenanceModeText = document.getElementById('maintenanceModeText');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -48,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadKyc();
     setupEventListeners();
     setupKycEventListeners();
+    checkMaintenanceMode();
 });
 
 // Event Listeners
@@ -69,6 +72,31 @@ function setupEventListeners() {
     });
 
     addVehicleForm.addEventListener('submit', handleAddVehicle);
+
+    // Edit vehicle modal handlers
+    const editVehicleModal = document.getElementById('editVehicleModal');
+    const closeEditModal = document.getElementById('closeEditModal');
+    const editVehicleForm = document.getElementById('editVehicleForm');
+
+    if (closeEditModal) {
+        closeEditModal.addEventListener('click', () => {
+            editVehicleModal.classList.remove('active');
+            editVehicleForm.reset();
+        });
+    }
+
+    if (editVehicleModal) {
+        editVehicleModal.addEventListener('click', (e) => {
+            if (e.target === editVehicleModal) {
+                editVehicleModal.classList.remove('active');
+                editVehicleForm.reset();
+            }
+        });
+    }
+
+    if (editVehicleForm) {
+        editVehicleForm.addEventListener('submit', handleEditVehicle);
+    }
 
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -225,6 +253,13 @@ function renderVehicles() {
     updateVehiclePagination(cars.length, totalVehiclePages);
     
     // Attach event listeners
+    document.querySelectorAll('.edit-vehicle-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const carId = parseInt(e.target.dataset.carId);
+            openEditVehicleModal(carId);
+        });
+    });
+
     document.querySelectorAll('.toggle-availability-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const carId = parseInt(e.target.dataset.carId);
@@ -315,10 +350,18 @@ function createVehicleCard(car) {
     const statusText = car.isAvailable ? 'Available' : 'Unavailable';
     const category = car.category || 'Other';
     
+    // Debug: Log the car object to see what we're getting
+    console.log('Car data:', car);
+    console.log('carPicture value:', car.carPicture);
+    
     // Use uploaded image if available, otherwise use default image
-    const carImage = car.carPicture 
-        ? (car.carPicture.startsWith('images/') ? car.carPicture : `/storage/${car.carPicture}`)
+    // Check multiple possible column names for the car picture
+    const carPictureValue = car.carPicture || car.car_picture || car.image || car.picture || car.photo;
+    const carImage = carPictureValue 
+        ? (carPictureValue.startsWith('images/') ? carPictureValue : `/storage/${carPictureValue}`)
         : getCarImage(car.brand, car.model, car.category);
+    
+    console.log('Final image path:', carImage);
     
     return `
         <div class="vehicle-card">
@@ -344,10 +387,11 @@ function createVehicleCard(car) {
                 </div>
                 <div class="vehicle-detail">
                     <label>Added</label>
-                    <span>${new Date(car.createdAt).toLocaleDateString()}</span>
+                    <span>${new Date(car.createdAt || car.created_at).toLocaleDateString()}</span>
                 </div>
             </div>
             <div class="vehicle-actions">
+                <button class="edit-vehicle-btn" data-car-id="${car.id}">Edit</button>
                 <button class="toggle-availability-btn ${statusClass}" data-car-id="${car.id}">
                     ${car.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
                 </button>
@@ -390,7 +434,12 @@ async function toggleCarAvailability(carId) {
 async function deleteVehicle(carId) {
     try {
         const response = await fetch(`${API_BASE}/cars/${carId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
         });
 
         if (response.ok) {
@@ -398,7 +447,7 @@ async function deleteVehicle(carId) {
             await loadCars();
         } else {
             const result = await response.json();
-            showToast('Error', result.error || 'Failed to delete vehicle.');
+            showToast('Error', result.error || result.message || 'Failed to delete vehicle.');
         }
     } catch (error) {
         console.error('Error deleting vehicle:', error);
@@ -727,11 +776,11 @@ async function handleAddVehicle(e) {
         let errorMessage = 'Invalid number plate format. ';
         
         if (numberPlate.match(/^U[A-Z]{2}/)) {
-            errorMessage += 'Legacy format should be: UAJ 979B (3 letters starting with U, 3 digits, 1 letter)';
+            errorMessage += 'Legacy format should be: UBA 234R (U + 2 letters + 3 digits + 1 letter)';
         } else if (numberPlate.match(/^UG/)) {
-            errorMessage += 'Digital format should be: UG 32 00042 (UG followed by 2 digits and 5 digits)';
+            errorMessage += 'Digital format should be: UG 32 00042 (UG + 2 digits + 5 digits)';
         } else {
-            errorMessage += 'Use UAJ 979B (legacy) or UG 32 00042 (digital) format.';
+            errorMessage += 'Use UBA 234R (legacy) or UG 32 00042 (digital) format.';
         }
         
         showToast('Error', errorMessage);
@@ -744,13 +793,17 @@ async function handleAddVehicle(e) {
     try {
         const response = await fetch(`${API_BASE}/cars`, {
             method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json'
+            },
             body: formData // Send FormData directly (includes file)
         });
 
         const result = await response.json();
 
         if (response.ok) {
-            showToast('Vehicle added.', 'The vehicle has been successfully added to Mam Tours and Travel.');
+            showToast('Success', 'Vehicle added successfully!');
             addVehicleModal.classList.remove('active');
             addVehicleForm.reset();
             await loadCars();
@@ -758,11 +811,113 @@ async function handleAddVehicle(e) {
                 renderVehicles();
             }
         } else {
-            showToast('Error', result.error || 'Failed to add vehicle.');
+            // Handle validation errors
+            let errorMessage = 'Failed to add vehicle.';
+            if (result.errors) {
+                // Laravel validation errors
+                const errors = Object.values(result.errors).flat();
+                errorMessage = errors.join(' ');
+            } else if (result.message) {
+                errorMessage = result.message;
+            } else if (result.error) {
+                errorMessage = result.error;
+            }
+            console.error('Server error:', result);
+            showToast('Error', errorMessage);
         }
     } catch (error) {
         console.error('Error adding vehicle:', error);
-        showToast('Error', 'Failed to add vehicle.');
+        showToast('Error', 'Network error. Please check your connection and try again.');
+    }
+}
+
+// Open Edit Vehicle Modal
+function openEditVehicleModal(carId) {
+    const car = cars.find(c => c.id === carId);
+    if (!car) return;
+
+    const editVehicleModal = document.getElementById('editVehicleModal');
+    const currentImagePreview = document.getElementById('currentImagePreview');
+    const currentImage = document.getElementById('currentImage');
+
+    // Populate form fields
+    document.getElementById('editCarId').value = car.id;
+    document.getElementById('editBrand').value = car.brand;
+    document.getElementById('editModel').value = car.model;
+    document.getElementById('editNumberPlate').value = car.numberPlate;
+    document.getElementById('editDailyRate').value = car.dailyRate;
+    document.getElementById('editSeats').value = car.seats;
+
+    // Show current image if exists
+    const carPictureValue = car.carPicture || car.car_picture || car.image || car.picture || car.photo;
+    if (carPictureValue) {
+        const imagePath = carPictureValue.startsWith('images/') 
+            ? carPictureValue 
+            : `/storage/${carPictureValue}`;
+        currentImage.src = imagePath;
+        currentImagePreview.style.display = 'block';
+    } else {
+        currentImagePreview.style.display = 'none';
+    }
+
+    editVehicleModal.classList.add('active');
+}
+
+// Handle Edit Vehicle
+async function handleEditVehicle(e) {
+    e.preventDefault();
+    
+    const carId = document.getElementById('editCarId').value;
+    const formData = new FormData(e.target);
+    
+    // Validate number plate format
+    const numberPlate = formData.get('numberPlate').trim().toUpperCase();
+    const platePattern = /^(U[A-Z]{2}\s?\d{3}[A-Z]|UG\s?\d{2}\s?\d{5})$/;
+    
+    if (!platePattern.test(numberPlate)) {
+        let errorMessage = 'Invalid number plate format. ';
+        
+        if (numberPlate.match(/^U[A-Z]{2}/)) {
+            errorMessage += 'Legacy format should be: UBA 234R (U + 2 letters + 3 digits + 1 letter)';
+        } else if (numberPlate.match(/^UG/)) {
+            errorMessage += 'Digital format should be: UG 32 00042 (UG + 2 digits + 5 digits)';
+        } else {
+            errorMessage += 'Use UBA 234R (legacy) or UG 32 00042 (digital) format.';
+        }
+        
+        showToast('Error', errorMessage);
+        return;
+    }
+
+    // Update the numberPlate in formData
+    formData.set('numberPlate', numberPlate);
+
+    try {
+        const response = await fetch(`${API_BASE}/cars/${carId}`, {
+            method: 'POST', // Using POST with _method override for file uploads
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json'
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showToast('Success', 'Vehicle updated successfully!');
+            document.getElementById('editVehicleModal').classList.remove('active');
+            document.getElementById('editVehicleForm').reset();
+            await loadCars();
+            if (activeTab === 'vehicles') {
+                renderVehicles();
+            }
+        } else {
+            showToast('Error', result.error || 'Failed to update vehicle.');
+        }
+    } catch (error) {
+        console.error('Error updating vehicle:', error);
+        showToast('Error', 'Failed to update vehicle.');
     }
 }
 
@@ -1390,4 +1545,75 @@ function switchTab(tabName) {
     } else if (tabName === 'reports') {
         paginationContainer.style.display = 'none';
     }
+}
+
+
+// Maintenance Mode Functions
+async function checkMaintenanceMode() {
+    try {
+        const response = await fetch(`${API_BASE}/maintenance/status`);
+        const data = await response.json();
+        
+        updateMaintenanceModeButton(data.maintenance_mode);
+    } catch (error) {
+        console.error('Error checking maintenance mode:', error);
+    }
+}
+
+function updateMaintenanceModeButton(isActive) {
+    if (isActive) {
+        maintenanceModeBtn.classList.add('active');
+        maintenanceModeText.textContent = 'Disable Maintenance';
+    } else {
+        maintenanceModeBtn.classList.remove('active');
+        maintenanceModeText.textContent = 'Enable Maintenance';
+    }
+}
+
+if (maintenanceModeBtn) {
+    maintenanceModeBtn.addEventListener('click', async () => {
+        const isActive = maintenanceModeBtn.classList.contains('active');
+        const action = isActive ? 'disable' : 'enable';
+        const confirmMessage = isActive 
+            ? 'Are you sure you want to disable maintenance mode? The website will be accessible to all users.'
+            : 'Are you sure you want to enable maintenance mode? The website will be inaccessible to regular users.';
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        maintenanceModeBtn.disabled = true;
+        maintenanceModeText.textContent = isActive ? 'Disabling...' : 'Enabling...';
+        
+        try {
+            const response = await fetch(`${API_BASE}/maintenance/${action}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                showToast('Success', data.message);
+                updateMaintenanceModeButton(data.maintenance_mode);
+                
+                if (data.admin_url) {
+                    showToast('Info', `Admin access URL: ${data.admin_url}`, 'info');
+                }
+            } else {
+                showToast('Error', data.message || 'Failed to toggle maintenance mode');
+                updateMaintenanceModeButton(!data.maintenance_mode);
+            }
+        } catch (error) {
+            console.error('Error toggling maintenance mode:', error);
+            showToast('Error', 'Failed to toggle maintenance mode');
+            updateMaintenanceModeButton(isActive);
+        } finally {
+            maintenanceModeBtn.disabled = false;
+        }
+    });
 }

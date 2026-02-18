@@ -41,6 +41,7 @@
             </div>
             <ul class="nav-menu">
                 <li><a href="{{ url('/') }}" class="nav-link {{ request()->is('/') || request()->is('home') ? 'active' : '' }}">Home</a></li>
+                <li><a href="{{ url('/fleet') }}" class="nav-link {{ request()->is('fleet') ? 'active' : '' }}">Our Fleet</a></li>
                 <li><a href="{{ url('/about') }}" class="nav-link {{ request()->is('about') ? 'active' : '' }}">About</a></li>
                 <li><a href="{{ url('/explore-uganda') }}" class="nav-link {{ request()->is('explore-uganda') ? 'active' : '' }}">Explore Uganda</a></li>
                 

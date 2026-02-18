@@ -31,7 +31,7 @@ class QueryMonitorService
             'bindings' => $query->bindings,
             'time' => $query->time . 'ms',
             'connection' => $query->connectionName,
-            'request_id' => request()->id() ?? 'cli',
+            'request_id' => uniqid('req_', true),
             'user_id' => auth()->id(),
             'url' => request()->fullUrl() ?? 'N/A',
         ]);

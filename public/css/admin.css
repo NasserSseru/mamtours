@@ -230,6 +230,53 @@ body {
 
 .booking-actions {
     margin-top: 1rem;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.confirm-booking-btn,
+.decline-booking-btn {
+    flex: 1;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.confirm-booking-btn {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.confirm-booking-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+}
+
+.decline-booking-btn {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.decline-booking-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
+    background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+}
+
+.confirm-booking-btn:disabled,
+.decline-booking-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .mark-returned-btn {
@@ -356,6 +403,7 @@ body {
 }
 
 .toggle-availability-btn,
+.edit-vehicle-btn,
 .delete-vehicle-btn {
     flex: 1;
     padding: 0.5rem 1rem;
@@ -365,6 +413,15 @@ body {
     font-weight: 600;
     font-size: 0.9rem;
     transition: all 0.3s ease;
+}
+
+.edit-vehicle-btn {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.edit-vehicle-btn:hover {
+    background: #ffe8a1;
 }
 
 .toggle-availability-btn {
@@ -906,4 +963,148 @@ body {
 
 .vehicle-card:hover .vehicle-image {
     transform: scale(1.05);
+}
+
+/* Reports Section Styling */
+.reports-header {
+    margin-bottom: 2rem;
+}
+
+.reports-header h2 {
+    color: #1a237e;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.reports-header p {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.reports-filters {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 180px;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.filter-select,
+.filter-input {
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+    outline: none;
+    border-color: #ff9800;
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+}
+
+.generate-report-btn,
+.export-report-btn {
+    padding: 0.75rem 1.75rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.generate-report-btn {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.generate-report-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+    background: linear-gradient(135deg, #f57c00 0%, #ef6c00 100%);
+}
+
+.export-report-btn {
+    background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.export-report-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+}
+
+.generate-report-btn:disabled,
+.export-report-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.generate-report-btn i,
+.export-report-btn i {
+    font-size: 1.1rem;
+}
+
+/* Maintenance Mode Button */
+.maintenance-mode-btn {
+    background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(156, 39, 176, 0.3);
+}
+
+.maintenance-mode-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+    background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%);
+}
+
+.maintenance-mode-btn.active {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.maintenance-mode-btn.active:hover {
+    background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
 }

@@ -2,18 +2,24 @@
 # exit on error
 set -o errexit
 
-# Install PHP dependencies
-composer install --no-dev --optimize-autoloader --no-interaction
+composer install --no-dev --optimize-autoloader
 
-# Install Node dependencies
-npm ci
+# Clear and cache config
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
 
-# Build frontend assets
-npm run build
-
-# Cache Laravel config
+# Cache for production
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-echo "Build completed successfully!"
+# Run migrations
+php artisan migrate --force --no-interaction
+
+# Create storage link
+php artisan storage:link
+
+# Seed database if needed (optional - comment out if not needed)
+# php artisan db:seed --force

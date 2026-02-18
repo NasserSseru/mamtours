@@ -16,6 +16,18 @@ use App\Http\Controllers\BookingController;
 |
 */
 
+// Debug route to check database columns
+Route::get('/debug/car-columns', function() {
+    $car = \App\Models\Car::first();
+    if ($car) {
+        return response()->json([
+            'columns' => array_keys($car->toArray()),
+            'sample_data' => $car->toArray()
+        ]);
+    }
+    return response()->json(['error' => 'No cars found']);
+});
+
 // Authentication API
 Route::post('/auth/login', function (Request $request) {
     $request->validate([
@@ -88,15 +100,22 @@ Route::get('/images', [CarController::class, 'getImages']);
 Route::get('/cars', [CarController::class, 'index']);
 Route::get('/cars/{id}', [CarController::class, 'show']);
 
-// Protected Cars API (admin only)
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+// Maintenance Mode API (admin only)
+Route::middleware(['auth:sanctum,web', 'admin'])->group(function () {
+    Route::get('/maintenance/status', [\App\Http\Controllers\MaintenanceController::class, 'status']);
+    Route::post('/maintenance/enable', [\App\Http\Controllers\MaintenanceController::class, 'enable']);
+    Route::post('/maintenance/disable', [\App\Http\Controllers\MaintenanceController::class, 'disable']);
+});
+
+// Protected Cars API (admin only) - accepts both session and API token auth
+Route::middleware(['auth:sanctum,web', 'admin'])->group(function () {
     Route::post('/cars', [CarController::class, 'store']);
     Route::put('/cars/{id}', [CarController::class, 'update']);
     Route::delete('/cars/{id}', [CarController::class, 'destroy']);
 });
 
-// Protected Bookings API (authenticated users)
-Route::middleware('auth:sanctum')->group(function () {
+// Protected Bookings API (authenticated users) - accepts both session and API token auth
+Route::middleware('auth:sanctum,web')->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']);
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
     Route::post('/bookings/reserve', [BookingController::class, 'reserve']);

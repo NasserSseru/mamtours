@@ -107,8 +107,23 @@ if (bookingForm) {
         }
         
         // Validate dates
-        const startDate = new Date(document.getElementById('startDate').value);
-        const endDate = new Date(document.getElementById('endDate').value);
+        const startDateValue = document.getElementById('startDate').value;
+        const endDateValue = document.getElementById('endDate').value;
+        
+        if (!startDateValue || !endDateValue) {
+            showToast('Error', 'Please select both start and end dates', 'error');
+            console.error('Missing dates');
+            return;
+        }
+        
+        const startDate = new Date(startDateValue);
+        const endDate = new Date(endDateValue);
+        
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            showToast('Error', 'Invalid date format', 'error');
+            console.error('Invalid date format');
+            return;
+        }
         
         if (startDate >= endDate) {
             showToast('Error', 'End date must be after start date', 'error');

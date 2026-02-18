@@ -10,13 +10,20 @@ class Car extends Model
     use HasFactory;
 
     protected $fillable = [
+        'car_picture',
         'carPicture',
+        'image',
+        'picture',
+        'photo',
         'brand',
         'model',
         'numberPlate',
+        'number_plate',
         'dailyRate',
+        'daily_rate',
         'seats',
         'isAvailable',
+        'is_available',
         'category',
         'transmission',
         'fuel_type',
@@ -42,6 +49,19 @@ class Car extends Model
         'rating' => 'decimal:2',
         'year' => 'integer',
     ];
+
+    // Add accessor for frontend compatibility
+    protected $appends = ['createdAt', 'updatedAt'];
+
+    public function getCreatedAtAttribute($value)
+    {
+        return $this->attributes['created_at'];
+    }
+
+    public function getUpdatedAtAttribute($value)
+    {
+        return $this->attributes['updated_at'];
+    }
 
     public function bookings()
     {

@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminUserSeeder::class,
-            CarSeeder::class,
+            // CarSeeder::class, // Commented out - using imported database
         ]);
     }
 }

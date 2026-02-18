@@ -11,7 +11,8 @@ class CarController extends Controller
 {
     public function index()
     {
-        return response()->json(Car::all());
+        $cars = Car::all();
+        return response()->json($cars);
     }
 
     public function store(Request $request)
@@ -37,11 +38,25 @@ class CarController extends Controller
         // Handle car picture upload
         $carPicturePath = null;
         if ($request->hasFile('car_picture')) {
-            $carPicturePath = $request->file('car_picture')->store('cars', 'public');
+            try {
+                $file = $request->file('car_picture');
+                $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+                
+                // Ensure images directory exists
+                if (!file_exists(public_path('images'))) {
+                    mkdir(public_path('images'), 0755, true);
+                }
+                
+                // Move to public/images directory (same as existing cars)
+                $file->move(public_path('images'), $filename);
+                $carPicturePath = 'images/' . $filename;
+            } catch (\Exception $e) {
+                \Log::error('Image upload failed: ' . $e->getMessage());
+                return response()->json(['error' => 'Failed to upload image: ' . $e->getMessage()], 500);
+            }
         }
 
-        $car = Car::create([
-            'carPicture' => $carPicturePath,
+        $carData = [
             'brand' => $validated['brand'],
             'model' => $validated['model'],
             'numberPlate' => strtoupper($validated['numberPlate']),
@@ -49,7 +64,19 @@ class CarController extends Controller
             'seats' => $validated['seats'],
             'category' => $validated['category'] ?? null,
             'isAvailable' => true,
-        ]);
+        ];
+
+        // Add image path if uploaded (column name is 'carPicture')
+        if ($carPicturePath) {
+            $carData['carPicture'] = $carPicturePath;
+        }
+
+        try {
+            $car = Car::create($carData);
+        } catch (\Exception $e) {
+            \Log::error('Car creation failed: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to create vehicle: ' . $e->getMessage()], 500);
+        }
 
         AuditLog::create([
             'action' => 'car.create',
@@ -85,6 +112,9 @@ class CarController extends Controller
             return response()->json(['error' => 'Car not found'], 404);
         }
 
+        // Handle both PUT/PATCH and POST with _method override
+        $method = $request->input('_method', $request->method());
+
         $validated = $request->validate([
             'car_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'brand' => 'nullable|string|max:100',
@@ -106,21 +136,34 @@ class CarController extends Controller
 
         // Handle car picture upload
         if ($request->hasFile('car_picture')) {
-            // Delete old car picture if exists
-            if ($car->carPicture && \Storage::disk('public')->exists($car->carPicture)) {
-                \Storage::disk('public')->delete($car->carPicture);
+            // Delete old car picture if exists in public/images
+            if ($car->carPicture && file_exists(public_path($car->carPicture))) {
+                unlink(public_path($car->carPicture));
             }
 
-            // Store new picture
-            $path = $request->file('car_picture')->store('cars', 'public');
-            $validated['carPicture'] = $path;
+            // Store new picture in public/images directory
+            $file = $request->file('car_picture');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $filename);
+            
+            // Set the path (column name is 'carPicture')
+            $validated['carPicture'] = 'images/' . $filename;
         }
 
         if (isset($validated['numberPlate'])) {
             $validated['numberPlate'] = strtoupper($validated['numberPlate']);
         }
 
+        // Remove _method from validated data if present
+        unset($validated['_method']);
+
         $car->update($validated);
+
+        AuditLog::create([
+            'action' => 'car.update',
+            'details' => ['carId' => $car->id, 'plate' => $car->numberPlate],
+            'at' => now(),
+        ]);
 
         return response()->json(['message' => 'Car updated successfully', 'car' => $car]);
     }

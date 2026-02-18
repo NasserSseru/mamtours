@@ -43,6 +43,10 @@ Route::get('/faqs', function () {
     return view('faqs');
 });
 
+Route::get('/fleet', function () {
+    return view('fleet');
+});
+
 Route::get('/explore-uganda', function () {
     return view('explore-uganda');
 });

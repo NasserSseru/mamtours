@@ -48,15 +48,15 @@ class ProfileController extends Controller
 
             // Store new document
             $path = $request->file('idDocument')->store('id-documents', 'public');
-            $validated['id_document'] = $path;
+            $user->id_document = $path;
         }
 
         // Add ID fields if provided
         if ($request->filled('idType')) {
-            $validated['id_type'] = $request->input('idType');
+            $user->id_type = $request->input('idType');
         }
         if ($request->filled('idNumber')) {
-            $validated['id_number'] = $request->input('idNumber');
+            $user->id_number = $request->input('idNumber');
         }
 
         $user->update($validated);

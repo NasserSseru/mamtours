@@ -253,9 +253,20 @@ function showQuickView(carId) {
     
     const features = getDefaultFeatures(vehicle);
     const description = getDefaultDescription(vehicle);
-    const carImage = vehicle.carPicture 
-        ? (vehicle.carPicture.startsWith('images/') ? vehicle.carPicture : `/storage/${vehicle.carPicture}`)
-        : getCarImage(vehicle.brand, vehicle.model, vehicle.category);
+    
+    // Handle car image path
+    let carImage;
+    if (vehicle.carPicture) {
+        if (vehicle.carPicture.startsWith('images/')) {
+            carImage = vehicle.carPicture;
+        } else if (vehicle.carPicture.startsWith('/')) {
+            carImage = vehicle.carPicture;
+        } else {
+            carImage = `images/${vehicle.carPicture}`;
+        }
+    } else {
+        carImage = getCarImage(vehicle.brand, vehicle.model, vehicle.category);
+    }
     
     const modalHTML = `
         <div class="quick-view-modal" id="quickViewModal" onclick="closeQuickView(event)">
@@ -395,9 +406,20 @@ function showComparison() {
                 <h2><i class="fas fa-balance-scale"></i> Vehicle Comparison</h2>
                 
                 <div class="comparison-grid">
-                    ${vehicles.map(v => `
+                    ${vehicles.map(v => {
+                        let vImage;
+                        if (v.carPicture) {
+                            if (v.carPicture.startsWith('images/') || v.carPicture.startsWith('/')) {
+                                vImage = v.carPicture;
+                            } else {
+                                vImage = `images/${v.carPicture}`;
+                            }
+                        } else {
+                            vImage = getCarImage(v.brand, v.model, v.category);
+                        }
+                        return `
                         <div class="comparison-card">
-                            <img src="${v.carPicture ? (v.carPicture.startsWith('images/') ? v.carPicture : `/storage/${v.carPicture}`) : getCarImage(v.brand, v.model, v.category)}" alt="${v.brand} ${v.model}">
+                            <img src="${vImage}" alt="${v.brand} ${v.model}" onerror="this.src='images/car logo.png'">
                             <h3>${v.brand} ${v.model}</h3>
                             <div class="comparison-specs">
                                 <div class="spec-row"><strong>Price:</strong> UGX ${v.dailyRate.toLocaleString()}/day</div>
@@ -411,7 +433,8 @@ function showComparison() {
                                 ${v.isAvailable ? 'Book Now' : 'Not Available'}
                             </button>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
         </div>
@@ -634,12 +657,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 
                 if (response.ok) {
-                    showToast('Success', 'Booking created successfully!');
+                    showToast('Success', 'Booking created successfully! Redirecting...');
                     bookingForm.reset();
                     selectedCar = null;
                     if (selectedCarIdInput) selectedCarIdInput.value = '';
                     if (carSelect) carSelect.value = '';
                     if (carInfo) carInfo.textContent = 'Click on a vehicle above to select it';
+                    
+                    // Redirect to dashboard after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 2000);
                 } else {
                     const error = await response.json();
                     showToast('Error', error.error || 'Failed to create booking');

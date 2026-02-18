@@ -99,18 +99,26 @@
                                 <label for="idType" class="form-label"><i class="fas fa-passport"></i> ID Type</label>
                                 <select id="idType" name="idType" class="form-input">
                                     <option value="">-- Select ID Type (Optional) --</option>
-                                    <option value="nin">National ID (NIN)</option>
-                                    <option value="passport">Passport</option>
+                                    <option value="nin" {{ old('idType', $user->id_type) == 'nin' ? 'selected' : '' }}>National ID (NIN)</option>
+                                    <option value="passport" {{ old('idType', $user->id_type) == 'passport' ? 'selected' : '' }}>Passport</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label for="idNumber" class="form-label"><i class="fas fa-barcode"></i> ID Number</label>
-                                <input type="text" id="idNumber" name="idNumber" class="form-input" placeholder="Enter your ID number (optional)">
+                                <input type="text" id="idNumber" name="idNumber" class="form-input" value="{{ old('idNumber', $user->id_number) }}" placeholder="Enter your ID number (optional)">
                             </div>
 
                             <div class="form-group">
                                 <label for="idDocument" class="form-label"><i class="fas fa-file-upload"></i> Upload ID/Passport Document</label>
+                                @if($user->id_document)
+                                    <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 12px; margin-bottom: 10px; color: #155724;">
+                                        <i class="fas fa-check-circle" style="color: #28a745; margin-right: 8px;"></i>
+                                        <strong>Document uploaded:</strong> {{ basename($user->id_document) }}
+                                        <br>
+                                        <small>Upload a new file to replace the existing document</small>
+                                    </div>
+                                @endif
                                 <div class="file-input-wrapper">
                                     <input type="file" id="idDocument" name="idDocument" class="file-input" accept=".jpg,.jpeg,.png,.pdf">
                                     <label for="idDocument" class="file-input-label">

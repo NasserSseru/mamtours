@@ -80,7 +80,7 @@
             <h2 class="section-title"><i class="fas fa-route"></i> How It Works</h2>
             <p class="section-description">Book a car in Uganda in four simple steps - Click to get started</p>
             <div class="steps-grid">
-                <a href="#our-fleet" class="step-card interactive-step" onclick="scrollToFleet(event)">
+                <a href="{{ url('/fleet') }}" class="step-card interactive-step">
                     <span class="step-num">1</span>
                     <div class="step-icon"><i class="fas fa-car-side"></i></div>
                     <h3>Choose your car</h3>
@@ -244,37 +244,7 @@
         </div>
     </section>
 
-    <!-- Fleet Showcase Section -->
-    <section class="cars-section modern-section alt-bg" id="our-fleet">
-        <div class="container">
-            <div class="section-header modern-section-header">
-                <h2 class="section-title"><i class="fas fa-car-garage"></i> Our Premium Fleet</h2>
-                <p class="section-description">Handpicked vehicles maintained to the highest standards Uganda road ready</p>
-            </div>
-            
-            <!-- Search and Sort Bar -->
-            <div class="vehicle-search-bar">
-                <input type="text" 
-                       id="vehicleSearch" 
-                       class="search-input" 
-                       placeholder="Search by brand, model, or features...">
-                <select id="vehicleSort" class="sort-select">
-                    <option value="default">Sort by: Default</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="seats">Most Seats</option>
-                    <option value="popular">Most Popular</option>
-                    <option value="rating">Highest Rated</option>
-                </select>
-            </div>
-            
-            <!-- Category Filters -->
-            <div class="category-filters" id="categoryFilters"></div>
-            
-            <!-- Vehicles Grid -->
-            <div id="vehiclesByCategory" class="vehicles-grid modern-vehicles-grid"></div>
-        </div>
-    </section>
+
 
     <!-- Testimonials (Uganda) -->
     <section class="testimonials-section">
@@ -412,12 +382,8 @@
           if(d&&typeof d.cars_count!=='undefined') statEl.textContent=d.cars_count;
         }).catch(function(){});
       }
-      document.querySelectorAll('.hero-strip-btn, a[href="#our-fleet"]').forEach(function(a){
-        a.addEventListener('click',function(e){ e.preventDefault(); var el=document.getElementById('our-fleet'); if(el) el.scrollIntoView({behavior:'smooth'}); });
-      });
     })();
     </script>
-    <script src="{{ asset('js/booking-enhanced-v2.js') }}"></script>
     <script>
     // Load dynamic reviews
     (function() {
@@ -460,15 +426,3 @@
     })();
     </script>
 @endsection
-
-
-<script>
-// Scroll to fleet section smoothly
-function scrollToFleet(event) {
-    event.preventDefault();
-    const fleetSection = document.getElementById('our-fleet');
-    if (fleetSection) {
-        fleetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-</script>

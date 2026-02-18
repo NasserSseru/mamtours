@@ -354,12 +354,17 @@ if (bookingForm) {
                 throw new Error(data.error || data.message || 'Booking failed');
             }
             
-            showToast('Success', 'Booking created successfully! Our team will contact you soon.', 'success');
+            showToast('Success', 'Booking created successfully! Redirecting...', 'success');
             bookingForm.reset();
             carSelect.value = '';
             selectedCarIdInput.value = '';
             carInfo.textContent = 'Click on a vehicle above to select it';
             selectedCar = null;
+            
+            // Redirect to dashboard after 2 seconds
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 2000);
         } catch (error) {
             console.error('Booking error:', error);
             showToast('Error', error.message || 'Failed to create booking. Please try again.', 'error');

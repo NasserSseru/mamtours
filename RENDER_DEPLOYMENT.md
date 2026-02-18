@@ -1,207 +1,177 @@
-Render Deployment Guide for MAM Tours
+# Deploy MAM Tours to Render.com
 
-Quick guide to deploy your car rental app on Render.
+## Prerequisites
+1. GitHub account
+2. Render.com account (sign up at https://render.com)
+3. Your code pushed to GitHub
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## Step 1: Push Code to GitHub
 
-STEP 1: PUSH TO GITHUB
+```bash
+# Initialize git if not already done
+git init
 
-Make sure your code is on GitHub:
+# Add all files
+git add .
 
-  git add .
-  git commit -m "Ready for Render deployment"
-  git push origin main
+# Commit
+git commit -m "Prepare for Render deployment"
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Create a new repository on GitHub, then:
+git remote add origin https://github.com/YOUR_USERNAME/mam-tours.git
+git branch -M main
+git push -u origin main
+```
 
-STEP 2: CREATE RENDER ACCOUNT
-
+## Step 2: Create Render Account
 1. Go to https://render.com
-2. Sign up with your GitHub account
+2. Sign up with GitHub
 3. Authorize Render to access your repositories
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-STEP 3: CREATE MYSQL DATABASE
-
-1. Click "New +" → "MySQL"
-2. Name: mam-tours-db
-3. Database: mam_tours
-4. User: mam_tours_user
-5. Region: Choose closest to you
-6. Plan: Free
+## Step 3: Create PostgreSQL Database
+1. Click "New +" → "PostgreSQL"
+2. Name: `mam-tours-db`
+3. Database: `mam_tours`
+4. User: `mam_tours_user`
+5. Region: Choose closest to your users
+6. Plan: **Free**
 7. Click "Create Database"
+8. **Save the connection details** (you'll need them)
 
-Save these credentials (you'll need them):
-- Internal Database URL
-- External Database URL
-- Host
-- Port
-- Database
-- Username
-- Password
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-STEP 4: CREATE WEB SERVICE
-
+## Step 4: Create Web Service
 1. Click "New +" → "Web Service"
 2. Connect your GitHub repository
-3. Select "mam-tours-laravel" repository
+3. Select your `mam-tours` repository
+4. Configure:
+   - **Name:** mam-tours
+   - **Region:** Same as database
+   - **Branch:** main
+   - **Runtime:** PHP
+   - **Build Command:** `./build.sh`
+   - **Start Command:** `php artisan serve --host=0.0.0.0 --port=$PORT`
 
-Configuration:
-- Name: mam-tours
-- Region: Same as database
-- Branch: main
-- Root Directory: (leave empty)
-- Environment: Docker
-- Plan: Free
+## Step 5: Add Environment Variables
+Click "Environment" and add these variables:
 
-Build Settings:
-- Build Command: bash build.sh
-- Start Command: bash start.sh
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-STEP 5: ADD ENVIRONMENT VARIABLES
-
-Click "Environment" tab and add these variables:
-
+```
 APP_NAME=MAM Tours
 APP_ENV=production
 APP_DEBUG=false
-APP_KEY=base64:KKmN0zpxMoDU1DkQa8ByHyZ/UD0b3+EoeKrJ3uRaktg=
-APP_URL=https://mam-tours.onrender.com
+APP_KEY=base64:YOUR_APP_KEY_HERE
+APP_URL=https://your-app-name.onrender.com
 
 LOG_CHANNEL=stack
-LOG_LEVEL=error
 
-DB_CONNECTION=mysql
-DB_HOST=(paste from database credentials)
-DB_PORT=(paste from database credentials)
+DB_CONNECTION=pgsql
+DB_HOST=<from database connection info>
+DB_PORT=5432
 DB_DATABASE=mam_tours
-DB_USERNAME=(paste from database credentials)
-DB_PASSWORD=(paste from database credentials)
+DB_USERNAME=<from database connection info>
+DB_PASSWORD=<from database connection info>
 
 SESSION_DRIVER=file
-CACHE_DRIVER=file
 QUEUE_CONNECTION=sync
+CACHE_DRIVER=file
 
 MAIL_MAILER=smtp
-MAIL_HOST=smtp.mailtrap.io
-MAIL_PORT=2525
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
-MAIL_ENCRYPTION=null
-MAIL_FROM_ADDRESS=noreply@mamtours.com
-MAIL_FROM_NAME=MAM Tours
-MAIL_ADMIN_EMAIL=wilberofficial2001@gmail.com
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your-email@gmail.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## Step 6: Generate APP_KEY
+Run locally:
+```bash
+php artisan key:generate --show
+```
+Copy the output and paste it as `APP_KEY` in Render environment variables.
 
-STEP 6: DEPLOY
-
+## Step 7: Deploy
 1. Click "Create Web Service"
-2. Render will start building and deploying
-3. Wait 5-10 minutes for first deployment
-4. Watch the logs for any errors
+2. Wait for deployment (5-10 minutes)
+3. Your site will be live at: `https://your-app-name.onrender.com`
 
-Your app will be live at: https://mam-tours.onrender.com
+## Step 8: Create Admin User
+After deployment, go to Render dashboard:
+1. Click on your web service
+2. Go to "Shell" tab
+3. Run:
+```bash
+php artisan tinker
+```
+Then:
+```php
+\App\Models\User::create([
+    'name' => 'Admin',
+    'email' => 'admin@mamtours.com',
+    'password' => bcrypt('your-secure-password'),
+    'role' => 'admin',
+    'email_verified_at' => now()
+]);
+exit
+```
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## Important Notes
 
-STEP 7: POST-DEPLOYMENT SETUP
+### Free Tier Limitations
+- Service spins down after 15 minutes of inactivity
+- First request after spin-down takes 30-60 seconds
+- 750 hours/month free (enough for one service)
 
-Once deployed, you need to create your admin account.
+### File Storage
+- Uploaded files are NOT persistent on free tier
+- Use Cloudinary or AWS S3 for file uploads
+- Or upgrade to paid plan ($7/month)
 
-Option A: Using Render Shell
-1. Go to your web service dashboard
-2. Click "Shell" tab
-3. Run: php artisan admin:create "Your Name" wilberofficial2001@gmail.com "your_password"
+### Database Backups
+- Free PostgreSQL includes automatic backups
+- Download backups from Render dashboard
 
-Option B: Using SSH (if available)
-1. Connect via SSH
-2. Navigate to your app directory
-3. Run the admin creation command
+### Custom Domain (Optional)
+1. Go to your web service settings
+2. Click "Custom Domains"
+3. Add your domain
+4. Update DNS records as instructed
 
-Seed the cars:
-  php artisan db:seed --class=CarsSeeder
+## Troubleshooting
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-IMPORTANT NOTES
-
-Free Tier Limitations:
-- App spins down after 15 minutes of inactivity
-- Takes 30-60 seconds to wake up on first request
-- 750 hours/month of runtime
-- Database: 1GB storage, 97 connections
-
-Performance Tips:
-- App will be slow on first load (cold start)
-- Subsequent requests will be fast
-- Consider upgrading to paid plan for 24/7 uptime
-
-Custom Domain:
-- Go to Settings → Custom Domain
-- Add your domain
-- Update DNS records as instructed
-- Update APP_URL environment variable
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-TROUBLESHOOTING
-
-Build Failed:
+### Build Fails
 - Check build logs in Render dashboard
-- Verify composer.json and package.json are valid
-- Make sure all dependencies are listed
+- Ensure `composer.json` has all dependencies
+- Verify PHP version in `composer.json`
 
-App Not Loading:
-- Check runtime logs
-- Verify database connection
-- Check APP_KEY is set
-- Verify all environment variables
+### Database Connection Error
+- Verify all DB environment variables
+- Check database is in same region
+- Ensure database is running
 
-Database Connection Error:
-- Double-check database credentials
-- Make sure DB_HOST uses internal database URL
-- Verify database is running
+### 500 Error
+- Check logs in Render dashboard
+- Verify APP_KEY is set
+- Run migrations: `php artisan migrate --force`
 
-500 Error:
-- Check logs: Click "Logs" in dashboard
-- Look for PHP errors
-- Verify .env variables are correct
+### Storage Link Error
+- This is normal on first deploy
+- Files will work after first upload
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## Monitoring
+- View logs: Render Dashboard → Your Service → Logs
+- Check metrics: Dashboard → Metrics tab
+- Set up alerts: Dashboard → Notifications
 
-UPDATING YOUR APP
+## Updating Your Site
+```bash
+# Make changes locally
+git add .
+git commit -m "Your changes"
+git push origin main
+```
+Render will automatically redeploy!
 
-After making changes:
-
-1. Push to GitHub:
-   git add .
-   git commit -m "Update description"
-   git push origin main
-
-2. Render automatically detects the push and redeploys
-
-3. Monitor deployment in Render dashboard
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-ADDING PAYMENT PROCESSING
-
-When you're ready to accept payments:
-
-1. Get Stripe live keys from https://stripe.com
-2. Add to Render environment variables:
-   STRIPE_KEY=pk_live_...
-   STRIPE_SECRET=sk_live_...
-   STRIPE_WEBHOOK_SECRET=whsec_...
-
-3. Render will automatically redeploy
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-You're all set! Your MAM Tours app should now be live on Render.
+## Support
+- Render Docs: https://render.com/docs
+- Community: https://community.render.com
