@@ -8,9 +8,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip \
-    nodejs \
-    npm
+    unzip
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -29,8 +27,6 @@ COPY . .
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
-RUN npm ci
-RUN npm run build
 
 # Set permissions
 RUN chmod -R 755 storage bootstrap/cache
