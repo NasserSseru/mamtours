@@ -75,7 +75,13 @@ class BookingController extends Controller
 
     public function index()
     {
-        return response()->json(Booking::all());
+        try {
+            $bookings = Booking::all();
+            return response()->json($bookings);
+        } catch (\Exception $e) {
+            \Log::error('Failed to load bookings: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to load bookings', 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)
