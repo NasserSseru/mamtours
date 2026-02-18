@@ -107,15 +107,15 @@ Route::middleware(['auth:sanctum,web', 'admin'])->group(function () {
     Route::post('/maintenance/disable', [\App\Http\Controllers\MaintenanceController::class, 'disable']);
 });
 
-// Protected Cars API (admin only) - accepts both session and API token auth
-Route::middleware(['auth:sanctum,web', 'admin'])->group(function () {
+// Protected Cars API (admin only) - uses web session auth
+Route::middleware(['web', 'auth', 'admin'])->group(function () {
     Route::post('/cars', [CarController::class, 'store']);
     Route::put('/cars/{id}', [CarController::class, 'update']);
     Route::delete('/cars/{id}', [CarController::class, 'destroy']);
 });
 
-// Protected Bookings API (authenticated users) - accepts both session and API token auth
-Route::middleware('auth:sanctum,web')->group(function () {
+// Protected Bookings API (authenticated users) - uses web session auth
+Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']);
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
     Route::post('/bookings/reserve', [BookingController::class, 'reserve']);
