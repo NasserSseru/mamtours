@@ -9,6 +9,7 @@
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="manifest" href="/manifest.json">
     
     <!-- Main CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
