@@ -73,19 +73,24 @@ class CarController extends Controller
 
         try {
             $car = Car::create($carData);
+            
+            // Try to create audit log, but don't fail if it errors
+            try {
+                AuditLog::create([
+                    'action' => 'car.create',
+                    'details' => json_encode(['carId' => $car->id, 'plate' => $car->numberPlate]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to create audit log: ' . $e->getMessage());
+            }
+            
+            return response()->json(['message' => 'Car added successfully', 'car' => $car], 201);
         } catch (\Exception $e) {
             \Log::error('Car creation failed: ' . $e->getMessage());
             return response()->json(['error' => 'Failed to create vehicle: ' . $e->getMessage()], 500);
         }
-
-        AuditLog::create([
-            'action' => 'car.create',
-            'details' => json_encode(['carId' => $car->id, 'plate' => $car->numberPlate]),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return response()->json(['message' => 'Car added successfully', 'car' => $car], 201);
     }
 
     public function show($id)
