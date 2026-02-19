@@ -42,7 +42,7 @@ services:
           name: mam-tours-db
           property: password
       - key: SESSION_DRIVER
-        value: database
+        value: cookie
       - key: SESSION_LIFETIME
         value: 43200
       - key: SESSION_ENCRYPT
