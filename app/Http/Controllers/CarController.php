@@ -132,7 +132,7 @@ class CarController extends Controller
         $method = $request->input('_method', $request->method());
 
         $validated = $request->validate([
-            'car_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'car_picture' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:10240',
             'brand' => 'nullable|string|max:100',
             'model' => 'nullable|string|max:100',
             'numberPlate' => [
