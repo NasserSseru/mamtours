@@ -200,8 +200,9 @@ class CarController extends Controller
             $validated['numberPlate'] = strtoupper($validated['numberPlate']);
         }
 
-        // Remove _method from validated data if present
+        // Remove _method and car_picture from validated data if present
         unset($validated['_method']);
+        unset($validated['car_picture']); // Remove the file input field name
 
         try {
             $car->update($validated);
