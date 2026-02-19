@@ -203,15 +203,26 @@ class CarController extends Controller
         // Remove _method from validated data if present
         unset($validated['_method']);
 
-        $car->update($validated);
+        try {
+            $car->update($validated);
 
-        AuditLog::create([
-            'action' => 'car.update',
-            'details' => ['carId' => $car->id, 'plate' => $car->numberPlate],
-            'at' => now(),
-        ]);
+            AuditLog::create([
+                'action' => 'car.update',
+                'details' => ['carId' => $car->id, 'plate' => $car->numberPlate],
+                'at' => now(),
+            ]);
 
-        return response()->json(['message' => 'Car updated successfully', 'car' => $car]);
+            return response()->json(['message' => 'Car updated successfully', 'car' => $car]);
+        } catch (\Exception $e) {
+            \Log::error('Car update failed: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return response()->json([
+                'error' => 'Failed to update vehicle',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => basename($e->getFile())
+            ], 500);
+        }
     }
 
     public function destroy($id)
