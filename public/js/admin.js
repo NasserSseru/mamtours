@@ -358,9 +358,18 @@ function createVehicleCard(car) {
     // Use uploaded image if available, otherwise use default image
     // Check multiple possible column names for the car picture
     const carPictureValue = car.carPicture || car.car_picture || car.image || car.picture || car.photo;
-    const carImage = carPictureValue 
-        ? `/storage/${carPictureValue}` // Images are in storage/app/public
-        : getCarImage(car.brand, car.model, car.category);
+    let carImage;
+    
+    if (carPictureValue) {
+        // Check if it's a full URL (ImgBB) or a local path
+        if (carPictureValue.startsWith('http://') || carPictureValue.startsWith('https://')) {
+            carImage = carPictureValue; // ImgBB URL
+        } else {
+            carImage = `/storage/${carPictureValue}`; // Local storage path
+        }
+    } else {
+        carImage = getCarImage(car.brand, car.model, car.category); // Default image
+    }
     
     console.log('Final image path:', carImage);
     
@@ -866,7 +875,13 @@ function openEditVehicleModal(carId) {
     // Show current image if exists
     const carPictureValue = car.carPicture || car.car_picture || car.image || car.picture || car.photo;
     if (carPictureValue) {
-        const imagePath = `/storage/${carPictureValue}`; // Images are in storage/app/public
+        // Check if it's a full URL (ImgBB) or a local path
+        let imagePath;
+        if (carPictureValue.startsWith('http://') || carPictureValue.startsWith('https://')) {
+            imagePath = carPictureValue; // ImgBB URL
+        } else {
+            imagePath = `/storage/${carPictureValue}`; // Local storage path
+        }
         currentImage.src = imagePath;
         currentImagePreview.style.display = 'block';
     } else {

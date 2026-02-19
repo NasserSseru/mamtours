@@ -59,6 +59,8 @@ services:
         value: sync
       - key: CACHE_DRIVER
         value: file
+      - key: IMGBB_API_KEY
+        sync: false
 
 databases:
   - name: mam-tours-db

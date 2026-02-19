@@ -40,13 +40,32 @@ class CarController extends Controller
         if ($request->hasFile('car_picture') && $request->file('car_picture')->isValid()) {
             try {
                 $file = $request->file('car_picture');
-                $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
                 
-                // Store in storage/app/public/cars directory (Laravel standard)
-                $path = $file->storeAs('cars', $filename, 'public');
-                $carPicturePath = $path; // Will be like 'cars/filename.jpg'
-                
-                \Log::info('Image uploaded successfully: ' . $carPicturePath);
+                // Upload to ImgBB if API key is configured
+                $imgbbApiKey = env('IMGBB_API_KEY');
+                if ($imgbbApiKey) {
+                    $client = new \GuzzleHttp\Client();
+                    $response = $client->post('https://api.imgbb.com/1/upload', [
+                        'form_params' => [
+                            'key' => $imgbbApiKey,
+                            'image' => base64_encode(file_get_contents($file->getRealPath())),
+                        ]
+                    ]);
+                    
+                    $result = json_decode($response->getBody(), true);
+                    if ($result['success']) {
+                        $carPicturePath = $result['data']['url'];
+                        \Log::info('Image uploaded to ImgBB successfully: ' . $carPicturePath);
+                    } else {
+                        throw new \Exception('ImgBB upload failed');
+                    }
+                } else {
+                    // Fallback to local storage if ImgBB is not configured
+                    $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+                    $path = $file->storeAs('cars', $filename, 'public');
+                    $carPicturePath = $path;
+                    \Log::info('Image uploaded to local storage: ' . $carPicturePath);
+                }
             } catch (\Exception $e) {
                 \Log::error('Image upload failed: ' . $e->getMessage());
                 return response()->json(['error' => 'Failed to upload image: ' . $e->getMessage()], 500);
@@ -133,18 +152,48 @@ class CarController extends Controller
 
         // Handle car picture upload
         if ($request->hasFile('car_picture')) {
-            // Delete old car picture if exists
-            if ($car->carPicture && \Storage::disk('public')->exists($car->carPicture)) {
-                \Storage::disk('public')->delete($car->carPicture);
+            // Delete old car picture if exists (only for local storage)
+            if ($car->carPicture && !filter_var($car->carPicture, FILTER_VALIDATE_URL)) {
+                if (\Storage::disk('public')->exists($car->carPicture)) {
+                    \Storage::disk('public')->delete($car->carPicture);
+                }
             }
 
-            // Store new picture in storage/app/public/cars directory
+            // Upload new picture
             $file = $request->file('car_picture');
-            $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
-            $path = $file->storeAs('cars', $filename, 'public');
             
-            // Set the path (column name is 'carPicture')
-            $validated['carPicture'] = $path;
+            // Upload to ImgBB if API key is configured
+            $imgbbApiKey = env('IMGBB_API_KEY');
+            if ($imgbbApiKey) {
+                try {
+                    $client = new \GuzzleHttp\Client();
+                    $response = $client->post('https://api.imgbb.com/1/upload', [
+                        'form_params' => [
+                            'key' => $imgbbApiKey,
+                            'image' => base64_encode(file_get_contents($file->getRealPath())),
+                        ]
+                    ]);
+                    
+                    $result = json_decode($response->getBody(), true);
+                    if ($result['success']) {
+                        $validated['carPicture'] = $result['data']['url'];
+                        \Log::info('Image uploaded to ImgBB successfully: ' . $validated['carPicture']);
+                    } else {
+                        throw new \Exception('ImgBB upload failed');
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('ImgBB upload failed: ' . $e->getMessage());
+                    // Fallback to local storage
+                    $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+                    $path = $file->storeAs('cars', $filename, 'public');
+                    $validated['carPicture'] = $path;
+                }
+            } else {
+                // Fallback to local storage if ImgBB is not configured
+                $filename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
+                $path = $file->storeAs('cars', $filename, 'public');
+                $validated['carPicture'] = $path;
+            }
         }
 
         if (isset($validated['numberPlate'])) {
