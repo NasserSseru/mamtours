@@ -921,12 +921,13 @@ async function handleEditVehicle(e) {
     formData.set('numberPlate', numberPlate);
 
     try {
-        const response = await fetch(`${API_BASE}/cars/${carId}`, {
+        const response = await fetch(`${ADMIN_BASE}/cars/${carId}`, {
             method: 'POST', // Using POST with _method override for file uploads
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 'Accept': 'application/json'
             },
+            credentials: 'same-origin',
             body: formData
         });
 
@@ -941,7 +942,7 @@ async function handleEditVehicle(e) {
                 renderVehicles();
             }
         } else {
-            showToast('Error', result.error || 'Failed to update vehicle.');
+            showToast('Error', result.error || result.message || 'Failed to update vehicle.');
         }
     } catch (error) {
         console.error('Error updating vehicle:', error);
@@ -1379,6 +1380,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (existingPreview) {
                     existingPreview.remove();
                 }
+            }
+        });
+    }
+    
+    // Handler for edit vehicle file input
+    const editFileInput = document.getElementById('edit_car_picture');
+    if (editFileInput) {
+        editFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const currentImagePreview = document.getElementById('currentImagePreview');
+            const currentImage = document.getElementById('currentImage');
+            
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImage.src = e.target.result;
+                    currentImagePreview.style.display = 'block';
+                    currentImagePreview.querySelector('p').textContent = 'New image selected: ' + file.name;
+                };
+                reader.readAsDataURL(file);
             }
         });
     }
