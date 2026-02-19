@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
         // Car Management routes
         Route::post('/admin/cars', [CarController::class, 'store'])->name('admin.cars.store');
         Route::put('/admin/cars/{id}', [CarController::class, 'update'])->name('admin.cars.update');
+        Route::post('/admin/cars/{id}', [CarController::class, 'update'])->name('admin.cars.update.post');
         Route::delete('/admin/cars/{id}', [CarController::class, 'destroy'])->name('admin.cars.destroy');
         Route::get('/admin/cars', [CarController::class, 'index'])->name('admin.cars.index');
         
