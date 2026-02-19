@@ -417,10 +417,12 @@ async function toggleCarAvailability(carId) {
         const car = cars.find(c => c.id === carId);
         if (!car) return;
 
-        const response = await fetch(`${API_BASE}/cars/${carId}`, {
+        const response = await fetch(`${ADMIN_BASE}/cars/${carId}`, {
             method: 'PUT',
+            credentials: 'same-origin',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 isAvailable: !car.isAvailable
