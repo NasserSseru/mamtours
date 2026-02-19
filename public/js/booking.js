@@ -80,9 +80,19 @@ function renderVehicleCard(vehicle) {
     
     // Use carPicture if available, otherwise fall back to getCarImage
     const carPictureValue = vehicle.carPicture || vehicle.car_picture || vehicle.image || vehicle.picture || vehicle.photo;
-    const carImage = carPictureValue 
-        ? (carPictureValue.startsWith('images/') ? carPictureValue : `/storage/${carPictureValue}`)
-        : getCarImage(vehicle.brand, vehicle.model, vehicle.category);
+    let carImage;
+    if (carPictureValue) {
+        // Check if it's a full URL (ImgBB) or a local path
+        if (carPictureValue.startsWith('http://') || carPictureValue.startsWith('https://')) {
+            carImage = carPictureValue; // ImgBB URL
+        } else if (carPictureValue.startsWith('images/')) {
+            carImage = carPictureValue; // Default image path
+        } else {
+            carImage = `/storage/${carPictureValue}`; // Local storage path
+        }
+    } else {
+        carImage = getCarImage(vehicle.brand, vehicle.model, vehicle.category); // Fallback to default
+    }
     
     return `
         <div class="vehicle-card" data-vehicle-id="${vehicle.id}">

@@ -129,11 +129,13 @@ function renderVehicleCard(vehicle) {
     // Use carPicture if available, otherwise fall back to getCarImage
     let carImage;
     if (vehicle.carPicture) {
-        // If carPicture already has a path, use it; otherwise prepend images/
-        if (vehicle.carPicture.startsWith('images/') || vehicle.carPicture.startsWith('/')) {
-            carImage = vehicle.carPicture;
+        // Check if it's a full URL (ImgBB) or a local path
+        if (vehicle.carPicture.startsWith('http://') || vehicle.carPicture.startsWith('https://')) {
+            carImage = vehicle.carPicture; // ImgBB URL
+        } else if (vehicle.carPicture.startsWith('images/') || vehicle.carPicture.startsWith('/')) {
+            carImage = vehicle.carPicture; // Default or absolute path
         } else {
-            carImage = `images/${vehicle.carPicture}`;
+            carImage = `/storage/${vehicle.carPicture}`; // Local storage path
         }
     } else {
         carImage = getCarImage(vehicle.brand, vehicle.model, vehicle.category);

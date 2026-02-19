@@ -167,9 +167,19 @@ function renderVehicles(cars) {
     
     vehiclesByCategory.innerHTML = cars.map(car => {
         // Use carPicture if available, otherwise fall back to getCarImage
-        const carImage = car.carPicture 
-            ? (car.carPicture.startsWith('images/') ? car.carPicture : `/storage/${car.carPicture}`)
-            : getCarImage(car.brand, car.model, car.category);
+        let carImage;
+        if (car.carPicture) {
+            // Check if it's a full URL (ImgBB) or a local path
+            if (car.carPicture.startsWith('http://') || car.carPicture.startsWith('https://')) {
+                carImage = car.carPicture; // ImgBB URL
+            } else if (car.carPicture.startsWith('images/')) {
+                carImage = car.carPicture; // Default image path
+            } else {
+                carImage = `/storage/${car.carPicture}`; // Local storage path
+            }
+        } else {
+            carImage = getCarImage(car.brand, car.model, car.category); // Fallback to default
+        }
         
         return `
         <div class="vehicle-card" data-vehicle-id="${car.id}">
