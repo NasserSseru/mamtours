@@ -898,6 +898,12 @@ async function handleEditVehicle(e) {
     const carId = document.getElementById('editCarId').value;
     const formData = new FormData(e.target);
     
+    // Add CSRF token to FormData
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (csrfToken) {
+        formData.append('_token', csrfToken);
+    }
+    
     // Validate number plate format
     const numberPlate = formData.get('numberPlate').trim().toUpperCase();
     const platePattern = /^(U[A-Z]{2}\s?\d{3}[A-Z]|UG\s?\d{2}\s?\d{5})$/;
@@ -922,12 +928,12 @@ async function handleEditVehicle(e) {
 
     try {
         const response = await fetch(`${ADMIN_BASE}/cars/${carId}`, {
-            method: 'POST', // Using POST with _method override for file uploads
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                'Accept': 'application/json'
-            },
+            method: 'POST',
             credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             body: formData
         });
 
